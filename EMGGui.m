@@ -20,6 +20,8 @@ end
 % End initialization code - DO NOT EDIT
 
 
+% ---------------- GUI Setup and Teardown ----------------
+
 % --- Executes just before EMGGui is made visible.
 function EMGGui_OpeningFcn(hObject, eventdata, handles, varargin)
 
@@ -29,11 +31,29 @@ handles.output = hObject;
 fprintf('\n---- EMGGui // Debug log ----\n\n');
 
 % Create EMGSession object for the GUI
-handles.session = EMGSession(handles.axes);
+handles.session = EMGSession(handles.axes, ...
+    handles.session_text, handles.classifier_text);
+
+% Set 'Live Capture' button on
+
+set(handles.live_capture_toggle, 'Value', 1);
 
 % Update handles structure
 guidata(hObject, handles);
 
+
+% --- Executes during object deletion, before destroying properties.
+function figure1_DeleteFcn(hObject, eventdata, handles)
+
+% Stop the session so that it doesn't continue to run
+if handles.session.is_running
+    handles.session.stop()
+end
+
+delete(handles.session);
+
+
+% ---------------- UI Element Callbacks ----------------
 
 % --- Outputs from this function are returned to the command line.
 function varargout = EMGGui_OutputFcn(hObject, eventdata, handles) 
@@ -46,6 +66,7 @@ varargout{1} = handles.output;
 function run_toggle_Callback(hObject, eventdata, handles)
 
 if get(hObject, 'Value')
+    set(handles.session_text, 'String', 'Hello');
     handles.session.start();
 else
     handles.session.stop();
@@ -77,5 +98,3 @@ else
     handles.session.stop_live_capture();
 end
 
-
-% End EMGGui.m

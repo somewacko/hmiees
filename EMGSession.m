@@ -13,7 +13,13 @@ classdef EMGSession < handle
                     
         sampling_rate   % The sampling rate of the session (Hz).
         
+        timer_period    % The period of which the session updates data.
+        
         figure          % The figure in the GUI to edit.
+        
+        session_text    % The session_text static text field
+                        
+        classifier_text % The classifier_text static text field
         
         recorder        % The audiorecorder object for the session
                     
@@ -24,10 +30,12 @@ classdef EMGSession < handle
             
         % ---- Constructor
         
-        function obj = EMGSession(figure)
+        function obj = EMGSession(figure, session_text, classifier_text)
             fprintf('EMGSession: Creating session.\n');
             
-            obj.figure = figure;
+            obj.figure          = figure;
+            obj.session_text    = session_text;
+            obj.classifier_text = classifier_text;
             
             obj.classifier = EMGClassifier();
             
@@ -35,6 +43,7 @@ classdef EMGSession < handle
             obj.is_live       = 0;
             
             obj.sampling_rate = 1000;
+            obj.timer_period  = 0.1;
             
             obj.recorder = audiorecorder(obj.sampling_rate, 16, 1);
         end
@@ -43,6 +52,16 @@ classdef EMGSession < handle
         
         function start(obj)
             fprintf('EMGSession: Starting session.\n');
+            
+            % Display information
+            
+            str = sprintf(['Session running\n',         ...
+                           '\n',                        ...
+                           'Sampling Rate: %d Hz\n',    ...
+                           'Timer Period: %0.2f s'],       ...
+                obj.sampling_rate, obj.timer_period);
+
+            set(obj.session_text, 'String', str);
 
             obj.is_running = 1;
                                     
@@ -51,7 +70,7 @@ classdef EMGSession < handle
             stop(obj.recorder);
             
             obj.recorder.TimerFcn = @obj.recorderCallback;
-            obj.recorder.TimerPeriod = 0.1;
+            obj.recorder.TimerPeriod = obj.timer_period;
             
             record(obj.recorder)
         end
@@ -59,6 +78,7 @@ classdef EMGSession < handle
         
         function stop(obj)
             fprintf('EMGSession: Stopping session.\n');
+            set(obj.session_text, 'String', 'Session stopped');
             
             obj.is_running = 0;
             
@@ -112,14 +132,15 @@ classdef EMGSession < handle
 
             % Only take the last second of samples
             sig = sig(max(1, end-obj.sampling_rate+1): end);
+            t = 0:4/length(sig):1-4/length(sig);
             
             % Plot waveform
-            plot(obj.figure, sig(1:4:end)); % Only plot every 4th sample
+            plot(obj.figure, t, sig(1:4:end)); % Only plot every 4th sample
             ylim(obj.figure, [-1 1]);
             
             drawnow;
             
-            % Perform classification
+            % Perform analysis and classification
             
             obj.classifier.classify(sig);
         end
@@ -128,8 +149,7 @@ classdef EMGSession < handle
         % ---- Classification
         
         function classify(obj, sig) %#ok<INUSD>
-            
-            % TODO
+            % TODO~
         end
             
     end % methods
