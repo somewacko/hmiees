@@ -1,0 +1,9 @@
+# Mac
+
+.DS_Store
+.Trashes
+.swp
+
+# Matlab intermediate files
+
+*.m~
