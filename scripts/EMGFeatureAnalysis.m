@@ -38,11 +38,13 @@ zc_threshold = 0.05;
 
 mav    = [];
 mavslp = [];
+wl     = [];
 wamp   = [];
 zc     = [];
 
 x = samples_per_period;
-i = 0;
+periods = 0;
+onsets = 0;
 
 while x < length(signal)
 
@@ -51,29 +53,37 @@ while x < length(signal)
     if max(abs(min(slice)),max(slice)) > onset_threshold
         mav    = [mav,    mean_absolute_value(slice)]; %#ok<*AGROW> :)
         mavslp = [mavslp, mean_absolute_value_slope(slice, mavslp_seg)];
+        wl     = [wl,     waveform_length(slice)];
         wamp   = [wamp,   willison_amplitude(slice, wamp_threshold)];
         zc     = [zc,     zero_crossings(slice, zc_threshold)];
-        i = i + 1;
+        onsets = onsets + 1;
     end
     
     x = x + samples_per_period;
+    periods = periods + 1;
 end
 
 
 % Display results:
 
-fprintf('Parameters:\n\n');
+fprintf('Parameters:\n');
+fprintf('\n');
+fprintf('Onset of motion method: Threshold @ %0.2f\n', onset_threshold);
+fprintf('\n');
 fprintf('MAVSLP Segments: %d\n', mavslp_seg);
 fprintf('WAMP Threshold:  %0.2f\n', wamp_threshold);
 fprintf('ZC Threshold:    %0.2f\n', zc_threshold);
-fprintf('Onset of motion method: Threshold @ %0.2f\n', onset_threshold);
 fprintf('\n');
-fprintf('Statistics:\n\n');
-fprintf('Num. Onsets: %d', i);
+fprintf('Results:\n');
+fprintf('\n');
+fprintf('Num. Onsets: %d/%d\n', onsets, periods);
+fprintf('\n');
 fprintf('MAV:\n\tAvg: %f\n\tVar: %f\n\tStd: %f\n', ...
     mean(mav), var(mav), std(mav));
 fprintf('MAVSLP:\n\tAvg: %f\n\tVar: %f\n\tStd: %f\n', ...
     mean(mavslp), var(mavslp), std(mavslp));
+fprintf('WL:\n\tAvg: %f\n\tVar: %f\n\tStd: %f\n', ...
+    mean(wl), var(wl), std(wl));
 fprintf('WAMP:\n\tAvg: %f\n\tVar: %f\n\tStd: %f\n', ...
     mean(wamp), var(wamp), std(wamp));
 fprintf('ZC:\n\tAvg: %f\n\tVar: %f\n\tStd: %f\n', ...
