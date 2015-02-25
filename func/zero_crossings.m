@@ -4,12 +4,10 @@ function zc = zero_crossings(sig, threshold)
 
     zc = 0;
 
-    for k = 1:length(sig)-1
-        
+    for k = 1:length(sig)-1        
         if abs(sig(k)-sig(k+1)) >= threshold
-            
-            if -sig(k) * sig(k+1) > 0
-                zc = zc +1;
+            if -1 * sig(k) * sig(k+1) >= 0
+                zc = zc + 1;
             end
         end       
     end
