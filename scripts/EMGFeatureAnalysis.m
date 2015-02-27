@@ -14,18 +14,43 @@ analysis_period = input('Analysis Period (s)  : ');
 samples_per_period = sampling_rate * analysis_period;
 
 
-
 % Read in the data
 
 file_id = fopen(filename, 'r');
 signal = fread(file_id, inf, 'bit24');
 signal = signal ./ 2^23; % Scale between -1 and 1
 
-t = 0 : 1/sampling_rate : (length(signal)-1)/sampling_rate;
 
-plot(t, signal);
+% Filter and downsample the signal to 1000 Hz
+
+% Note that the filtering stage might be unnecessary
+% since Matlab's decimate() function uses an 8th-order
+% Chebyshev filter before downsampling.
+
+filtered_signal = detrend(signal);  % Remove DC offset
+n = 4;                              % Order of the filter
+nyquist = sampling_rate/2;
+Wn = [10 500];                      % Cutoff frequencies
+
+[btw_b, btw_a] = butter(n, Wn/nyquist);
+filtered_signal = filtfilt(btw_b, btw_a, filtered_signal);
+
+D = ceil(sampling_rate/1000);
+downsampled_signal = decimate(filtered_signal, D);
+
+
+% Plot it to spit it back out
+
+t   = 0 : 1/sampling_rate : (length(signal)-1)/sampling_rate;
+t_d = 0 : 1/1000 : (length(downsampled_signal)-1)/1000;
+
+subplot(121); plot(t, signal);
 xlim([0 max(t)]); ylim([-1 1]);
-title('EMG Signal'); ylabel('t (s)');
+title('Raw EMG Signal'); ylabel('t (s)');
+
+subplot(122); plot(t_d, downsampled_signal);
+xlim([0 max(t_d)]); ylim([-1 1]);
+title('Filtered/Downsampled Signal'); ylabel('t (s)');
 
 
 % Perform analysis on each frame
@@ -46,13 +71,13 @@ x = samples_per_period;
 periods = 0;
 onsets = 0;
 
-while x < length(signal)
+while x < length(filtered_signal)
 
-    slice = signal(x-samples_per_period+1 : x);
+    slice = filtered_signal(x-samples_per_period+1 : x);
     
     if max(abs(min(slice)),max(slice)) > onset_threshold
         mav    = [mav,    mean_absolute_value(slice)]; %#ok<*AGROW> :)
-        mavslp = [mavslp, mean_absolute_value_slope(slice, mavslp_seg)];
+        mavslp = [mavslp, mean_absolute_value_slope(slice,mavslp_seg)];
         wl     = [wl,     waveform_length(slice)];
         wamp   = [wamp,   willison_amplitude(slice, wamp_threshold)];
         zc     = [zc,     zero_crossings(slice, zc_threshold)];
@@ -68,7 +93,7 @@ end
 
 fprintf('Parameters:\n');
 fprintf('\n');
-fprintf('Onset of motion method: Threshold @ %0.2f\n', onset_threshold);
+fprintf('Onset of motion method: Threshold @ %0.2f\n',onset_threshold);
 fprintf('\n');
 fprintf('MAVSLP Segments: %d\n', mavslp_seg);
 fprintf('WAMP Threshold:  %0.2f\n', wamp_threshold);
