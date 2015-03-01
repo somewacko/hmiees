@@ -1,10 +1,11 @@
-function wl = waveform_length(signal)
-%UNTITLED2 Summary of this function goes here
-%   Detailed explanation goes here
+function wl = waveform_length(sig)
+    % Calculates the overall waveform length.
 
-    wl = 0;
+    [N, cols] = size(sig);
+    
+    wl = zeros(1, cols);
 
-    for k = 2:length(signal)
-        wl = wl + abs(signal(k)-signal(k-1));
+    for k = 2:N
+        wl = wl + abs(sig(k,:)-sig(k-1,:));
     end
 end
