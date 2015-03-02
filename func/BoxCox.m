@@ -18,6 +18,6 @@ function Xn = BoxCox(X, lam)
             end
         end
     else % lambda value of 0 uses only log transformation
-    Xn = log(X);
+        Xn = log(X);
     end
 end

@@ -1,3 +1,3 @@
 function mav = mean_absolute_value(sig)
-    mav = sum(abs(sig)) / length(sig);
+    mav = mean(abs(sig));
 end
