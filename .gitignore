@@ -8,7 +8,3 @@
 
 *.m~
 
-# Don't include .raw or .wav files
-
-*.raw
-*.wav
