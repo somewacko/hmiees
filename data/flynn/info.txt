@@ -1,0 +1,3 @@
+Signed 24-bit integer raw, sampling at 8000 Hz.
+
+Recorded using a prototype EMG instrumentation circuit with rudimentary sensors, analog bandpass filter from 10-500 Hz. (I think...)
