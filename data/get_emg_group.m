@@ -1,4 +1,4 @@
-function emg_signals = get_emg_group(directory, sampling_rate)
+function [emg_signals, t] = get_emg_group(directory, sampling_rate)
     % Reads in all 24-bit raw emg signal files from a directory
     % and puts them in an n-column vector.
     
@@ -9,13 +9,17 @@ function emg_signals = get_emg_group(directory, sampling_rate)
     
     emg_signals = [];
     min_length = Inf;
+    t = [];
     
     for i = 1:length(files)
         if ~files(i).isdir
             filename = strcat(directory, files(i).name);
-            [signal, ~] = get_emg_signal(filename, sampling_rate);
+            [signal, sig_t] = get_emg_signal(filename, sampling_rate);
             
-            min_length = min(min_length, length(signal));
+            if length(signal) < min_length
+                min_length = length(signal);
+                t = sig_t;
+            end
             
             if isempty(emg_signals)
                 emg_signals = signal;

@@ -18,5 +18,4 @@ function [emg_signal, t] = get_emg_signal(filename, sampling_rate)
     % Also return the time vector
     
     t = 0 : 1/1000 : (length(emg_signal)-1)/1000;
-    
 end
