@@ -47,7 +47,7 @@ rand_signal = 4 * rand(length(t), 1) - 2;
 
 % Create and train classifier
 
-classifier = EMGClassifier(length(t), []);
+classifier = EMGClassifier(length(t));
 
 sine_gesture = classifier.register_gesture('Sine');
 sawt_gesture = classifier.register_gesture('Sawtooth');

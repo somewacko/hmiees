@@ -13,22 +13,18 @@ classdef EMGClassifier < handle
     end
     
     
-    methods (Access = public)
+    methods % Public
         
         % ---- Constructor
         
-        function obj = EMGClassifier(sampling_period, features)
-
+        function obj = EMGClassifier(sampling_period)
+                        
             obj.sampling_period = sampling_period;
             
-            if isempty(features) % If no features, use default
-                obj.features = [ EMGFeature.MAV, ...
-                                 EMGFeature.ZC,  ...
-                                 EMGFeature.WL,  ...
-                                 EMGFeature.WAMP ];
-            else
-                obj.features = features;
-            end
+            obj.features = [ EMGFeature.MAV, ...
+                             EMGFeature.ZC,  ...
+                             EMGFeature.WL,  ...
+                             EMGFeature.WAMP ];
         end
         
         
@@ -123,12 +119,38 @@ classdef EMGClassifier < handle
             end
         end
         
+        
+        % ---- Setters
+        
+        function set.features(obj, value)            
+            % NOTE: Setting this will invalidate all training and the
+            % classifier will have to be retrained.
+            
+            obj.features = value;
+            obj.reset_training();
+        end
+        
+        
+        function set.sampling_period(obj, value)
+            % NOTE: Setting this will invalidate all training and the
+            % classifier will have to be retrained.
+            
+            obj.sampling_period = value;
+            obj.reset_training();
+        end
+        
     end % Public Methods
         
     
     methods (Access = private) 
         
-        
+        function reset_training(obj)
+            % Resets training for all gestures in the classifier.
+            
+            for i = 1:length(obj.gestures)
+                obj.gestures(i).training_set = [];
+            end
+        end
         
         
         function check_length(obj, signal)
