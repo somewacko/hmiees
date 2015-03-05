@@ -20,9 +20,10 @@ classdef EMGFeature
         end
         
         function feat = extract(obj, signal)
-            % Returns the feature for the given signals. Signal should
-            % be in one column vector, and multiple signals can be
-            % passed through as different rows.
+            % Returns the feature for the given signals.
+            
+            % signal : The signal(s) to extract features from. Each
+            %          signal must be in its own column.
             
             if obj == EMGFeature.MAV
                 feat = mean_absolute_value(signal);
