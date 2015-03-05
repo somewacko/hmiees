@@ -57,7 +57,9 @@ classdef EMGClassifier < handle
             
             obj.check_length(signal);
             
-            feats = obj.extract_features(signal);
+            N = obj.sampling_period;
+            
+            feats = obj.extract_features(signal(1:N,:));
             gesture.add_training_set(feats);
         end
         
@@ -86,7 +88,9 @@ classdef EMGClassifier < handle
             gesture  = [];
             distance = Inf;
             
-            feat = obj.extract_features(signal);
+            N = obj.sampling_period;
+            
+            feat = obj.extract_features(signal(1:N,:));
             
             for i = 1:length(obj.gestures)
                 
@@ -111,11 +115,13 @@ classdef EMGClassifier < handle
             %          signal.
             
             obj.check_length(signal);
+            
+            N = obj.sampling_period;
 
-            feat = zeros(size(signal, 2), length(obj.features));
+            feat = zeros(size(signal(1:N,:), 2), length(obj.features));
             
             for i = 1:length(obj.features)
-                feat(:,i) = obj.features(i).extract(signal);
+                feat(:,i) = obj.features(i).extract(signal(1:N,:));
             end
         end
         
