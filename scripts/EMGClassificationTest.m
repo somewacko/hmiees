@@ -24,7 +24,7 @@ ss_incorrect_distance = 0;
 rg_correct_distance   = 0;
 rg_incorrect_distance = 0;
 
-sampling_period = 200;
+sampling_period = 300;
 
 
 fprintf('\nTesting with sampling_period = %d\n\n', sampling_period);
