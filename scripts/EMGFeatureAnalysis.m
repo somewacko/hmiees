@@ -1,116 +1,55 @@
 % EMGFeatureAnalysis.m
 % Flynn, Michael
 %
-%   Reads in an EMG signal (signed 24-bit raw) and extracts features
-%   upon detecting onset of motion. 
+%   Reads in EMG signals and outputs statistics about their features.
 
+file_sampling_rate = 8000;
+sampling_period    = 200;
 
-% Get information from the user
+directories = {
+    'data/flynn/slices/simple_squeeze/',
+    'data/flynn/slices/reverse_grasp/'
+};
 
-filename        = input('File of raw EMG data : ', 's');
-sampling_rate   = input('Sampling rate (Hz)   : ');
-analysis_period = input('Analysis Period (s)  : ');
+fprintf('\n');
+fprintf('Sampling period: %f\n', sampling_period);
+fprintf('\n');
+fprintf('MAVSLP Segments: %d\n',    EMGFeature.MAVSLP.value);
+fprintf('WAMP Threshold:  %0.2f\n', EMGFeature.WAMP.value);
+fprintf('ZC Threshold:    %0.2f\n', EMGFeature.ZC.value);
+fprintf('\n');
 
-samples_per_period = sampling_rate * analysis_period;
-
-
-% Read in the data
-
-file_id = fopen(filename, 'r');
-signal = fread(file_id, inf, 'bit24');
-signal = signal ./ 2^23; % Scale between -1 and 1
-
-
-% Filter and downsample the signal to 1000 Hz
-
-% Note that the filtering stage might be unnecessary
-% since Matlab's decimate() function uses an 8th-order
-% Chebyshev filter before downsampling.
-
-filtered_signal = detrend(signal);  % Remove DC offset
-n = 4;                              % Order of the filter
-nyquist = sampling_rate/2;
-Wn = [10 500];                      % Cutoff frequencies
-
-[btw_b, btw_a] = butter(n, Wn/nyquist);
-filtered_signal = filtfilt(btw_b, btw_a, filtered_signal);
-
-D = ceil(sampling_rate/1000);
-downsampled_signal = decimate(filtered_signal, D);
-
-
-% Plot it to spit it back out
-
-t   = 0 : 1/sampling_rate : (length(signal)-1)/sampling_rate;
-t_d = 0 : 1/1000 : (length(downsampled_signal)-1)/1000;
-
-subplot(121); plot(t, signal);
-xlim([0 max(t)]); ylim([-1 1]);
-title('Raw EMG Signal'); ylabel('t (s)');
-
-subplot(122); plot(t_d, downsampled_signal);
-xlim([0 max(t_d)]); ylim([-1 1]);
-title('Filtered/Downsampled Signal'); ylabel('t (s)');
-
-
-% Perform analysis on each frame
-
-onset_threshold = 0.05;
-
-mavslp_seg = 4;
-wamp_threshold = 0.05;
-zc_threshold = 0.05;
-
-mav    = [];
-mavslp = [];
-wl     = [];
-wamp   = [];
-zc     = [];
-
-x = samples_per_period;
-periods = 0;
-onsets = 0;
-
-while x < length(filtered_signal)
-
-    slice = filtered_signal(x-samples_per_period+1 : x);
+for i = 1:size(directories, 1)
+    directory = char(directories(i));
+   
+    % Read in signals and take a slice
     
-    if max(abs(min(slice)),max(slice)) > onset_threshold
-        mav    = [mav,    mean_absolute_value(slice)]; %#ok<*AGROW> :)
-        mavslp = [mavslp, mean_absolute_value_slope(slice,mavslp_seg)];
-        wl     = [wl,     waveform_length(slice)];
-        wamp   = [wamp,   willison_amplitude(slice, wamp_threshold)];
-        zc     = [zc,     zero_crossings(slice, zc_threshold)];
-        onsets = onsets + 1;
-    end
+    signals = get_emg_group(directory, file_sampling_rate);
+    slice = signals(1:sampling_period,:);
     
-    x = x + samples_per_period;
-    periods = periods + 1;
+    % Extract features
+
+    feat_mav    = EMGFeature.MAV.extract(slice);
+    feat_mavslp = EMGFeature.MAVSLP.extract(slice);
+    feat_wamp   = EMGFeature.WAMP.extract(slice);
+    feat_wl     = EMGFeature.ZC.extract(slice);
+    feat_zc     = EMGFeature.ZC.extract(slice);
+
+    % Display results:
+
+    fprintf('%s:\n', directory);
+    fprintf('\n');
+    fprintf('MAV:\n\tAvg: %0.8f\n\tVar: %0.8f\n\tStd: %0.8f\n', ...
+        mean(feat_mav), var(feat_mav), std(feat_mav));
+    fprintf('MAVSLP:\n\tAvg: %0.8f\n\tVar: %0.8f\n\tStd: %0.8f\n', ...
+        mean(feat_mavslp), var(feat_mavslp), std(feat_mavslp));
+    fprintf('WAMP:\n\tAvg: %0.8f\n\tVar: %0.8f\n\tStd: %0.8f\n', ...
+        mean(feat_wamp), var(feat_wamp), std(feat_wamp));
+    fprintf('WL:\n\tAvg: %0.8f\n\tVar: %0.8f\n\tStd: %0.8f\n', ...
+        mean(feat_wl), var(feat_wl), std(feat_wl));
+    fprintf('ZC:\n\tAvg: %0.8f\n\tVar: %0.8f\n\tStd: %0.8f\n', ...
+        mean(feat_zc), var(feat_zc), std(feat_zc));
+    fprintf('\n');
 end
 
 
-% Display results:
-
-fprintf('Parameters:\n');
-fprintf('\n');
-fprintf('Onset of motion method: Threshold @ %0.2f\n',onset_threshold);
-fprintf('\n');
-fprintf('MAVSLP Segments: %d\n', mavslp_seg);
-fprintf('WAMP Threshold:  %0.2f\n', wamp_threshold);
-fprintf('ZC Threshold:    %0.2f\n', zc_threshold);
-fprintf('\n');
-fprintf('Results:\n');
-fprintf('\n');
-fprintf('Num. Onsets: %d/%d\n', onsets, periods);
-fprintf('\n');
-fprintf('MAV:\n\tAvg: %f\n\tVar: %f\n\tStd: %f\n', ...
-    mean(mav), var(mav), std(mav));
-fprintf('MAVSLP:\n\tAvg: %f\n\tVar: %f\n\tStd: %f\n', ...
-    mean(mavslp), var(mavslp), std(mavslp));
-fprintf('WL:\n\tAvg: %f\n\tVar: %f\n\tStd: %f\n', ...
-    mean(wl), var(wl), std(wl));
-fprintf('WAMP:\n\tAvg: %f\n\tVar: %f\n\tStd: %f\n', ...
-    mean(wamp), var(wamp), std(wamp));
-fprintf('ZC:\n\tAvg: %f\n\tVar: %f\n\tStd: %f\n', ...
-    mean(zc), var(zc), std(zc));
-fprintf('\n');
