@@ -7,8 +7,8 @@ file_sampling_rate = 8000;
 sampling_period    = 200;
 
 directories = {
-    'data/flynn/slices/simple_squeeze/',
-    'data/flynn/slices/reverse_grasp/'
+    'data/flynn/slices/simple_squeeze/', ...
+    'data/flynn/slices/reverse_grasp/'   ...
 };
 
 fprintf('\n');

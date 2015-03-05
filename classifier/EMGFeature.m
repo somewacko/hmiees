@@ -2,10 +2,10 @@ classdef EMGFeature
     
     enumeration
         MAV     ('Mean Absolute Value',         []   ),
-        MAVSLP  ('Mean Absolute Value Slope',   25   ),
-        ZC      ('Zero Crossings',              0.20 ),
+        MAVSLP  ('Mean Absolute Value Slope',   10   ),
+        ZC      ('Zero Crossings',              0.15 ),
         WL      ('Waveform Length',             []   ),
-        WAMP    ('Willison Amplitude',          0.5  )
+        WAMP    ('Willison Amplitude',          0.20 )
     end
     
     properties
