@@ -45,20 +45,19 @@ sqre_signal = square(2*t)/2 + 3*rand(length(t), 1) - 1.5;
 rand_signal = 4 * rand(length(t), 1) - 2;
 
 
-% Make feature vectors for the reference and input signals
+% Create and train classifier
 
-wamp = 0.1;  % Willison Amplitude threshold
-zc   = 0.05; % Zero-Crossing threshold
+classifier = EMGClassifier(length(t), []);
 
-sine_ref_feats = PrelimFeatures(sine_ref_signals, wamp, zc);
-sawt_ref_feats = PrelimFeatures(sawt_ref_signals, wamp, zc);
-sqre_ref_feats = PrelimFeatures(sqre_ref_signals, wamp, zc);
-rand_ref_feats = PrelimFeatures(rand_ref_signals, wamp, zc);
+sine_gesture = classifier.register_gesture('Sine');
+sawt_gesture = classifier.register_gesture('Sawtooth');
+sqre_gesture = classifier.register_gesture('Square');
+rand_gesture = classifier.register_gesture('Random');
 
-sine_feats = PrelimFeatures(sine_signal, wamp, zc);
-sawt_feats = PrelimFeatures(sawt_signal, wamp, zc);
-sqre_feats = PrelimFeatures(sqre_signal, wamp, zc);
-rand_feats = PrelimFeatures(rand_signal, wamp, zc);
+classifier.train(sine_ref_signals, sine_gesture);
+classifier.train(sawt_ref_signals, sawt_gesture);
+classifier.train(sqre_ref_signals, sqre_gesture);
+classifier.train(rand_ref_signals, rand_gesture);
 
 
 % Plot input signals for reference
@@ -76,35 +75,33 @@ subplot(224); plot(t, rand_signal);
 xlim([min(t) max(t)]); title('Random input');
 
 
-% Get distance for each input/ref pair and print results
+% Classify the signals
 
-% Note: Make sure inputs for Matlab's mahal() function are transposed.
+fprintf('\n');
 
-fprintf('\nMahalanobis distances (Lowest is most similar)\n\n');
+[gesture, distance] = classifier.classify(sine_signal);
 
-fprintf('With Sine Reference:\n');
-fprintf('\tSine:     %0.2f\n', mahal(sine_feats', sine_ref_feats'));
-fprintf('\tSawtooth: %0.2f\n', mahal(sawt_feats', sine_ref_feats'));
-fprintf('\tSquare:   %0.2f\n', mahal(sqre_feats', sine_ref_feats'));
-fprintf('\tRandom:   %0.2f\n', mahal(rand_feats', sine_ref_feats'));
+fprintf('Sine wave is a...\n');
+fprintf('\tClass:    %s\n', gesture.name);
+fprintf('\tDistance: %0.2f\n', distance);
 
-fprintf('With Sawtooth Reference:\n');
-fprintf('\tSine:     %0.2f\n', mahal(sine_feats', sawt_ref_feats'));
-fprintf('\tSawtooth: %0.2f\n', mahal(sawt_feats', sawt_ref_feats'));
-fprintf('\tSquare:   %0.2f\n', mahal(sqre_feats', sawt_ref_feats'));
-fprintf('\tRandom:   %0.2f\n', mahal(rand_feats', sawt_ref_feats'));
+[gesture, distance] = classifier.classify(sawt_signal);
 
-fprintf('With Square Reference:\n');
-fprintf('\tSine:     %0.2f\n', mahal(sine_feats', sqre_ref_feats'));
-fprintf('\tSawtooth: %0.2f\n', mahal(sawt_feats', sqre_ref_feats'));
-fprintf('\tSquare:   %0.2f\n', mahal(sqre_feats', sqre_ref_feats'));
-fprintf('\tRandom:   %0.2f\n', mahal(rand_feats', sqre_ref_feats'));
+fprintf('Sawtooth wave is a...\n');
+fprintf('\tClass:    %s\n', gesture.name);
+fprintf('\tDistance: %0.2f\n', distance);
 
-fprintf('With Rand Reference:\n');
-fprintf('\tSine:     %0.2f\n', mahal(sine_feats', rand_ref_feats'));
-fprintf('\tSawtooth: %0.2f\n', mahal(sawt_feats', rand_ref_feats'));
-fprintf('\tSquare:   %0.2f\n', mahal(sqre_feats', rand_ref_feats'));
-fprintf('\tRandom:   %0.2f\n', mahal(rand_feats', rand_ref_feats'));
+[gesture, distance] = classifier.classify(sqre_signal);
+
+fprintf('Square wave is a...\n');
+fprintf('\tClass:    %s\n', gesture.name);
+fprintf('\tDistance: %0.2f\n', distance);
+
+[gesture, distance] = classifier.classify(rand_signal);
+
+fprintf('Random wave is a...\n');
+fprintf('\tClass:    %s\n', gesture.name);
+fprintf('\tDistance: %0.2f\n', distance);
 
 fprintf('\n');
 
