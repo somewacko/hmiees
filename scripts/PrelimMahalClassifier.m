@@ -49,6 +49,14 @@ rand_signal = 4 * rand(length(t), 1) - 2;
 
 classifier = EMGClassifier(length(t));
 
+% Explicitly set features to use in case it changes later
+classifier.features = [
+    EMGFeature.MAV,  ...
+    EMGFeature.WAMP, ...
+    EMGFeature.ZC,   ...
+    EMGFeature.WL    ...
+];
+
 sine_gesture = classifier.register_gesture('Sine');
 sawt_gesture = classifier.register_gesture('Sawtooth');
 sqre_gesture = classifier.register_gesture('Square');
