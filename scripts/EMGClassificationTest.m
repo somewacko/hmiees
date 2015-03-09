@@ -10,108 +10,62 @@
 
 % Read in data and set up variables.
 
-ss_signals = get_emg_group('data/flynn/slices/simple_squeeze/', 8000);
-rg_signals = get_emg_group('data/flynn/slices/reverse_grasp/' , 8000);
+file_sampling_rate = 8000;
 
-ss_name = 'Simple Squeeze';
-rg_name = 'Reverse Grasp';
+directories = {
+    'data/flynn/slices/simple_squeeze/', ...
+    'data/flynn/slices/reverse_grasp/',  ...
+    'data/flynn/slices/inwards_bend/'    ...
+};
 
-ss_success = 0;
-rg_success = 0;
+gesture_names = {
+    'Simple Squeeze', ...
+    'Reverse Grasp',  ...
+    'Inwards Bend'    ...
+};
 
-ss_correct_distance   = 0;
-ss_incorrect_distance = 0;
-rg_correct_distance   = 0;
-rg_incorrect_distance = 0;
+signals = cell(1, size(directories, 2));
 
-sampling_period = 200;
-
-
-fprintf('\nTesting with sampling_period = %d\n\n', sampling_period);
-
-
-% Test simple squeeze
-
-for i = 1:size(ss_signals, 2)
-    
-    % Copy signals over and remove signal that we're going to test.
-    ss_signals_copy = ss_signals;
-    ss_signals_copy(:,i) = [];
-    
-    classifier = EMGClassifier(sampling_period);
-    
-    ss_gesture = classifier.register_gesture(ss_name);
-    classifier.train(ss_signals_copy, ss_gesture);
-    
-    rg_gesture = classifier.register_gesture(rg_name);
-    classifier.train(rg_signals, rg_gesture);
-    
-    [gesture, distance] = classifier.classify(ss_signals(:,i));
-    
-    %fprintf('Simple squeeze signal %2d\n', i);
-    %fprintf('\tGesture  - %s\n', gesture.name);
-    %fprintf('\tDistance - %0.2f\n', distance);
-    
-    if gesture == ss_gesture
-        ss_success = ss_success + 1;
-        ss_correct_distance = ss_correct_distance + distance;
-    else
-        ss_incorrect_distance = ss_incorrect_distance + distance;
-    end
+for i = 1:size(directories, 2)
+    directory = char(directories(i));
+    signals{i} = get_emg_group(directory, file_sampling_rate);
 end
 
-ss_correct_distance = ss_correct_distance / ss_success;
-ss_incorrect_distance = ss_incorrect_distance ...
-    / (size(ss_signals, 2)-ss_success);
 
+% Test classifier at different sampling periods
 
-% Test reverse grasp
+successes = [];
+periods   = 100:100:1000;
 
-for i = 1:size(rg_signals, 2)
-    
-    % Copy signals over and remove signal that we're going to test.
-    rg_signals_copy = rg_signals;
-    rg_signals_copy(:,i) = [];
-    
-    classifier = EMGClassifier(sampling_period);
-    
-    ss_gesture = classifier.register_gesture(ss_name);
-    classifier.train(ss_signals, ss_gesture);
-    
-    rg_gesture = classifier.register_gesture(rg_name);
-    classifier.train(rg_signals_copy, rg_gesture);
-    
-    [gesture, distance] = classifier.classify(rg_signals(:,i));
-    
-    %fprintf('Reverse Grasp signal %2d\n', i);
-    %fprintf('\tGesture  - %s\n', gesture.name);
-    %fprintf('\tDistance - %0.2f\n', distance);
-    
-    if gesture == rg_gesture
-        rg_success = rg_success + 1;
-        rg_correct_distance = rg_correct_distance + distance;
-    else
-        rg_incorrect_distance = rg_incorrect_distance + distance;
+for sampling_period = periods
+
+    fprintf('\nTesting with sampling_period = %d\n\n', ...
+        sampling_period);
+
+    avg_success = TestClassifier(signals, sampling_period);
+
+    fprintf('Results:\n');
+    for i = 1:size(directories, 2)
+        fprintf('\t%s\tSuccess: %0.2f%%\n', ...
+            char(gesture_names{i}), avg_success(i));
     end
+    fprintf('\nOverall Success: %0.2f%%\n\n', mean(avg_success));
+
+    successes = [successes, mean(avg_success)]; %#ok<AGROW>
 end
 
-rg_correct_distance = rg_correct_distance / rg_success;
-rg_incorrect_distance = rg_incorrect_distance ...
-    / (size(rg_signals, 2)-rg_success);
 
+% Display results on a bar graph
 
-% Print final results
+figure(1); clf;
+bar(periods, successes);
+ylim([0 100]);
 
-fprintf('\n');
-fprintf('Sampling period: %d\n', sampling_period);
-fprintf('\n');
-fprintf('SS success: %0.2f%%\n', 100*ss_success/size(ss_signals, 2));
-fprintf('RG success: %0.2f%%\n', 100*rg_success/size(rg_signals, 2));
-fprintf('\n');
-fprintf('SS Avg correct distance:   %0.2f\n', ss_correct_distance);
-fprintf('SS Avg incorrect distance: %0.2f\n', ss_incorrect_distance);
-fprintf('\n');
-fprintf('RG Avg correct distance:   %0.2f\n', rg_correct_distance);
-fprintf('RG Avg incorrect distance: %0.2f\n', rg_incorrect_distance);
-fprintf('\n');
+ttl = sprintf('Success Rates for Classifier With %d Gestures', ...
+    size(signals, 2));
+
+title(ttl);
+xlabel('Sampling Period');
+ylabel('Success Rate');
+
 
