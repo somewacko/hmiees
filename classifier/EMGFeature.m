@@ -19,26 +19,33 @@ classdef EMGFeature
             obj.value = val;
         end
         
-        function feat = extract(obj, signal)
+        function feat = extract(obj, signal, value)
             % Returns the feature for the given signals.
             
             % signal : The signal(s) to extract features from. Each
             %          signal must be in its own column.
+            % value  : An optional value for the feature's parameter.
+            %          If none provided, feature will use default.
+            
+            val = value;
+            
+            if isempty(value)
+                val = obj.value; end
             
             if obj == EMGFeature.MAV
                 feat = mean_absolute_value(signal);
                 
             elseif obj == EMGFeature.MAVSLP
-                feat = mean_absolute_value_slope(signal, obj.value);
+                feat = mean_absolute_value_slope(signal, val);
                 
             elseif obj == EMGFeature.ZC
-                feat = zero_crossings(signal, obj.value);
+                feat = zero_crossings(signal, val);
                 
             elseif obj == EMGFeature.WL
                 feat = waveform_length(signal);
                 
             elseif obj == EMGFeature.WAMP
-                feat = willison_amplitude(signal, obj.value);
+                feat = willison_amplitude(signal, val);
                 
             else
                 feat = 0;

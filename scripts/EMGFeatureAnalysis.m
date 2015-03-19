@@ -19,7 +19,7 @@ fprintf('WAMP Threshold:  %0.2f\n', EMGFeature.WAMP.value);
 fprintf('ZC Threshold:    %0.2f\n', EMGFeature.ZC.value);
 fprintf('\n');
 
-for i = 1:size(directories, 1)
+for i = 1:size(directories, 2)
     directory = char(directories(i));
    
     % Read in signals and take a slice
@@ -29,11 +29,11 @@ for i = 1:size(directories, 1)
     
     % Extract features
 
-    feat_mav    = EMGFeature.MAV.extract(slice);
-    feat_mavslp = EMGFeature.MAVSLP.extract(slice);
-    feat_wamp   = EMGFeature.WAMP.extract(slice);
-    feat_wl     = EMGFeature.ZC.extract(slice);
-    feat_zc     = EMGFeature.ZC.extract(slice);
+    feat_mav    = EMGFeature.MAV.extract(slice, []);
+    feat_mavslp = EMGFeature.MAVSLP.extract(slice, []);
+    feat_wamp   = EMGFeature.WAMP.extract(slice, []);
+    feat_wl     = EMGFeature.ZC.extract(slice, []);
+    feat_zc     = EMGFeature.ZC.extract(slice, []);
 
     % Display results:
 

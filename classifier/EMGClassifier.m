@@ -121,7 +121,7 @@ classdef EMGClassifier < handle
             feat = zeros(size(signal(1:N,:), 2), length(obj.features));
             
             for i = 1:length(obj.features)
-                feat(:,i) = obj.features(i).extract(signal(1:N,:));
+                feat(:,i) = obj.features(i).extract(signal(1:N,:), []);
             end
         end
         
