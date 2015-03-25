@@ -23,6 +23,7 @@
 #include "cemg/emg_features.h"
 #include "cemg/emg_onset.h"
 #include "cemg/emg_processing.h"
+#include "cemg/emg_signal.h"
 
 
 // ---- Message to display when used incorrectly
