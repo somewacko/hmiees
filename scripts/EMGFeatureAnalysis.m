@@ -69,49 +69,52 @@ for i = 1:length(feats)
 end
 
 
-% Plot WAMP and ZC
+% Plot features with parameters
 
-fig_wamp = figure(1); clf;
+fig_ssc = figure(1); clf;
+title('SSC');
+xlabel('Parameter Value');
+
+fig_wamp = figure(2); clf;
 title('Willison Amplitude');
 xlabel('Parameter Value');
 
-fig_zc = figure(2); clf;
+fig_zc = figure(3); clf;
 title('Zero Crossings');
 xlabel('Parameter Value');
 
-for i = 1:size(directories, 2)
+feats = [ ...
+    EMGFeature.SSC,  ...
+    EMGFeature.WAMP, ...
+    EMGFeature.ZC    ...
+];
 
-    % WAMP
+for i = 1:length(feats)
     
-    val = 0:0.01:0.45;
-    
-    avgs = zeros(1, length(val));
-    stds = zeros(1, length(val));
-    
-    for n = 1:length(val)
-        wamp = EMGFeature.WAMP.extract(cell2mat(signals(i)), val(n));
-        avgs(n) = mean(wamp);
-        stds(n) = std(wamp); 
-    end
-    
-    figure(fig_wamp); hold on;
-    errorbar(val+(i-1)*0.0025, avgs, stds, char(colors(i)));
-    
-    % ZC
+    figure(i); clf; hold on;
+    title(feats(i).name);
+    xlabel('Value');
     
     val = 0:0.01:0.5;
     
-    avgs = zeros(1, length(val));
-    stds = zeros(1, length(val));
-    
-    for n = 1:length(val)
-        wamp = EMGFeature.ZC.extract(cell2mat(signals(i)), val(n));
-        avgs(n) = mean(wamp);
-        stds(n) = std(wamp); 
+    if feats(i) == EMGFeature.SSC
+        val = 0:0.001:0.1;
     end
     
-    figure(fig_zc); hold on;
-    errorbar(val+(i-1)*0.001, avgs, stds, char(colors(i)));
+    for l = 1:size(directories, 2)
+    
+        avgs = zeros(1, length(val));
+        stds = zeros(1, length(val));
+        
+        for n = 1:length(val)
+            wamp = feats(i).extract(cell2mat(signals(l)), val(n));
+            avgs(n) = mean(wamp);
+            stds(n) = std(wamp); 
+        end
+        
+        errorbar(val+(l-1)*0.0025, avgs, stds, char(colors(l)));
+    end
+    
+    hold off;
 end
 
-hold off;

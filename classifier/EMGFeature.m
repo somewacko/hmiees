@@ -1,13 +1,14 @@
 classdef EMGFeature
     
     enumeration
-        MAV     ('Mean Absolute Value',         []   ),
-        MAVSLP  ('Mean Absolute Value Slope',   10   ),
-        SSI     ('Simple Square Integral',      []   ),
-        VAR     ('Variance',                    []   ),
-        WAMP    ('Willison Amplitude',          0.20 ),
-        WL      ('Waveform Length',             []   ),
-        ZC      ('Zero Crossings',              0.15 )
+        MAV     ('Mean Absolute Value',         []    ),
+        MAVSLP  ('Mean Absolute Value Slope',   10    ),
+        SSC     ('Slope Sign Changes',          0.008 ),
+        SSI     ('Simple Square Integral',      []    ),
+        VAR     ('Variance',                    []    ),
+        WAMP    ('Willison Amplitude',          0.15  ),
+        WL      ('Waveform Length',             []    ),
+        ZC      ('Zero Crossings',              0.15  )
     end
     
     properties
@@ -39,6 +40,9 @@ classdef EMGFeature
                 
             elseif obj == EMGFeature.MAVSLP
                 feat = mean_absolute_value_slope(signal, val);
+                
+            elseif obj == EMGFeature.SSC
+                feat = slope_sign_changes(signal, val);
                 
             elseif obj == EMGFeature.SSI
                 feat = simple_square_integral(signal);
