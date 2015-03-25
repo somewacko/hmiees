@@ -5,7 +5,8 @@ classdef EMGFeature
         MAVSLP  ('Mean Absolute Value Slope',   10   ),
         ZC      ('Zero Crossings',              0.15 ),
         WL      ('Waveform Length',             []   ),
-        WAMP    ('Willison Amplitude',          0.20 )
+        WAMP    ('Willison Amplitude',          0.20 ),
+        VAR     ('Variance',                    []   )
     end
     
     properties
@@ -46,6 +47,9 @@ classdef EMGFeature
                 
             elseif obj == EMGFeature.WAMP
                 feat = willison_amplitude(signal, val);
+                
+            elseif obj == EMGFeature.VAR
+                feat = var(signal);
                 
             else
                 feat = 0;

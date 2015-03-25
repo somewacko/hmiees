@@ -6,7 +6,7 @@
 clf;
 
 file_sampling_rate = 8000;
-sampling_period    = 200;
+sampling_period    = 1000;
 
 directories = {
     'data/flynn/slices/simple_squeeze/', ...
@@ -33,8 +33,9 @@ fprintf('\n');
 
 % Calculate MAV and WL (these don't have parameters)
 
-mav = cell(1, size(directories, 2));
-wl  = cell(1, size(directories, 2));
+feat_mav = cell(1, size(directories, 2));
+feat_wl  = cell(1, size(directories, 2));
+feat_var = cell(1, size(directories, 2));
 
 for i = 1:size(directories, 2)
     directory = char(directories(i));
@@ -42,21 +43,28 @@ for i = 1:size(directories, 2)
     signals = get_emg_group(directory, file_sampling_rate);
     slice = signals(1:sampling_period,:);
     
-    mav(i) = {EMGFeature.MAV.extract(slice, [])};
-    wl(i)  = {EMGFeature.WL.extract(slice, [])};
+    feat_mav(i) = {EMGFeature.MAV.extract(slice, [])};
+    feat_wl(i)  = {EMGFeature.WL.extract(slice, [])};
+    feat_var(i) = {EMGFeature.VAR.extract(slice, [])};
 end
 
 fprintf('Mean Absolute Value:\n');
 for i = 1:size(directories, 2)
     fprintf('\t%s\n', char(names(i)));
-    fprintf('\t\tMean: %f\n', mean( cell2mat(mav(i)) ));
-    fprintf('\t\tStd:  %f\n',  std( cell2mat(mav(i)) ));
+    fprintf('\t\tMean: %f\n', mean( cell2mat(feat_mav(i)) ));
+    fprintf('\t\tStd:  %f\n',  std( cell2mat(feat_mav(i)) ));
 end
 fprintf('\nWaveform Length:\n')
 for i = 1:size(directories, 2)
     fprintf('\t%s\n', char(names(i)));
-    fprintf('\t\tMean: %f\n', mean( cell2mat(wl(i)) ));
-    fprintf('\t\tStd:  %f\n',  std( cell2mat(wl(i)) ));
+    fprintf('\t\tMean: %f\n', mean( cell2mat(feat_wl(i)) ));
+    fprintf('\t\tStd:  %f\n',  std( cell2mat(feat_wl(i)) ));
+end
+fprintf('\nVariance:\n')
+for i = 1:size(directories, 2)
+    fprintf('\t%s\n', char(names(i)));
+    fprintf('\t\tMean: %f\n', mean( cell2mat(feat_var(i)) ));
+    fprintf('\t\tStd:  %f\n',  std( cell2mat(feat_var(i)) ));
 end
 fprintf('\n');
 
