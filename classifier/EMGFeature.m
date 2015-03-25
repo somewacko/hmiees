@@ -1,14 +1,14 @@
 classdef EMGFeature
     
     enumeration
-        MAV     ('Mean Absolute Value',         []    ),
-        MAVSLP  ('Mean Absolute Value Slope',   10    ),
+        MAV     ('Mean Absolute Value',         []   ),
+        MAVSLP  ('Mean Absolute Value Slope',   10   ),
         SSC     ('Slope Sign Changes',          0.008 ),
-        SSI     ('Simple Square Integral',      []    ),
-        VAR     ('Variance',                    []    ),
-        WAMP    ('Willison Amplitude',          0.15  ),
-        WL      ('Waveform Length',             []    ),
-        ZC      ('Zero Crossings',              0.15  )
+        SSI     ('Simple Square Integral',      []   ),
+        VAR     ('Variance',                    []   ),
+        WAMP    ('Willison Amplitude',          0.05 ),
+        WL      ('Waveform Length',             []   ),
+        ZC      ('Zero Crossings',              0.1  )
     end
     
     properties

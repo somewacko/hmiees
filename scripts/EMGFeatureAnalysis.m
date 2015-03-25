@@ -6,7 +6,7 @@
 clf;
 
 file_sampling_rate = 8000;
-sampling_period    = 200;
+sampling_period    = 100;
 
 directories = {
     'data/flynn/slices/simple_squeeze/', ...
@@ -95,10 +95,10 @@ for i = 1:length(feats)
     title(feats(i).name);
     xlabel('Value');
     
-    val = 0:0.01:0.5;
+    val = 0:0.001:0.5;
     
     if feats(i) == EMGFeature.SSC
-        val = 0:0.001:0.1;
+        val = 0:0.0001:0.05;
     end
     
     for l = 1:size(directories, 2)
@@ -112,7 +112,7 @@ for i = 1:length(feats)
             stds(n) = std(wamp); 
         end
         
-        errorbar(val+(l-1)*0.0025, avgs, stds, char(colors(l)));
+        errorbar(val, avgs, stds, char(colors(l)));
     end
     
     hold off;

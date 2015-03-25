@@ -35,21 +35,21 @@ end
 % Test classifier at different sampling periods
 
 successes = [];
-periods   = 100:100:1000;
+periods   = 25:25:500;
 
 for sampling_period = periods
 
-    fprintf('\nTesting with sampling_period = %d\n\n', ...
-        sampling_period);
+    %fprintf('\nTesting with sampling_period = %d\n\n', ...
+    %    sampling_period);
 
     avg_success = TestClassifier(signals, sampling_period);
 
-    fprintf('Results:\n');
-    for i = 1:size(directories, 2)
-        fprintf('\t%s\tSuccess: %0.2f%%\n', ...
-            char(gesture_names{i}), avg_success(i));
-    end
-    fprintf('\nOverall Success: %0.2f%%\n\n', mean(avg_success));
+    %fprintf('Results:\n');
+    %for i = 1:size(directories, 2)
+    %    fprintf('\t%s\tSuccess: %0.2f%%\n', ...
+    %        char(gesture_names{i}), avg_success(i));
+    %end
+    %fprintf('\nOverall Success: %0.2f%%\n\n', mean(avg_success));
 
     successes = [successes, mean(avg_success)]; %#ok<AGROW>
 end
