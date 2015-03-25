@@ -1,3 +1,9 @@
+# Ignore emg-ctest executables
+
+emg-ctest
+*.o
+*.out
+
 # Mac
 
 .DS_Store
