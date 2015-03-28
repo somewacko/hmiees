@@ -42,7 +42,7 @@ for sampling_period = periods
     %fprintf('\nTesting with sampling_period = %d\n\n', ...
     %    sampling_period);
 
-    avg_success = TestClassifier(signals, sampling_period);
+    avg_success = TestClassifier(signals, sampling_period, []);
 
     %fprintf('Results:\n');
     %for i = 1:size(directories, 2)

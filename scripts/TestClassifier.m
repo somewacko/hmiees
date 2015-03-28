@@ -1,4 +1,4 @@
-function successes = TestClassifier(signals, sampling_period)
+function successes = TestClassifier(signals, sampling_period, lambda)
 
     % Tests the classifier with a group of signals at a given sampling
     % period.
@@ -15,6 +15,8 @@ function successes = TestClassifier(signals, sampling_period)
         for test_signal = 1:size(signals{test_group}, 2)
 
             classifier = EMGClassifier(sampling_period);
+            if ~isempty(lambda)
+                classifier.lambda = lambda; end
             test_gesture = [];
 
             for i = 1:size(signals, 2)
