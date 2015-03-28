@@ -11,7 +11,7 @@
 #include "emg_onset.h"
 
 
-bool OnOffDetection(emg_sample_t *current_member)
+bool OnOffDetection(emg_sample_t current_member)
 {
 	int M = 1000, h = 4, n = 2, m = 5, T1 = 80;     			  //M:number of "no motion" samples to set base_variance
 	static int active, off, activeflag;                							 //these should occur at beginning of the sample set
@@ -19,23 +19,23 @@ bool OnOffDetection(emg_sample_t *current_member)
 	static float sum, base_variance; 			  //h:threshold value to detect onset
 	emg_sample_t  previous_member;
 	int n_of_m = 0;	      //n:number of above threshold samples out of m samples
-	float mean = 0.0, smean = 0.0; 								  //m:number of samples in window
+	float mean = 0.0, smean = 0.0, g = 0.0; 								  //m:number of samples in window
 											         			  //T1:number of successive windows to achieve "onset"
 	if(test_count<M){
-		sum += *current_member;
+		sum += current_member;
 		if(test_count == (M-1)){
 			mean = sum/M;
 			smean = (sum*sum)/M;
 			base_variance = smean - mean*mean; 
-			previous_member = *current_member;	
+			previous_member = current_member;	
 		}
 		test_count++;
-		return(FALSE);				
+		return(false);				
 	}
 	else{		
 		    
 		if (count%2 == 0){         //g only takes odd samples (first sample ignored)
-		    g = (1/base_variance)*(previous_member^2+*current_member^2);
+		    g = (1/base_variance)*(previous_member*previous_member+current_member*current_member);
 	    
 	        if(g>=h){                //increments n_of_m if g is larger than h otherwise
 	        	n_of_m += 1;    	//decrements n_of_m
@@ -73,7 +73,7 @@ bool OnOffDetection(emg_sample_t *current_member)
 	        }
 	    }
 	    else{
-	    	previous_member = *current_member;
+	    	previous_member = current_member;
 	    }
 
 	    count++;	    
