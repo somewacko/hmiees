@@ -24,7 +24,7 @@ classdef EMGGesture < handle
             obj.training_set = vertcat(obj.training_set, features);
         end
         
-        function distance = mahal_distance(obj, features)
+        function distance = mahal_distance(obj, features, lambda)
             % Gets the Mahalanobis distance for a feature vector
             % from this gesture's training set.
             
@@ -36,7 +36,13 @@ classdef EMGGesture < handle
             %            a measure of confidence for how alike this
             %            signal is to this class.
             
-            distance = mahal(features, obj.training_set);
+            if isempty(lambda)
+                lambda = 0.1; end
+            
+            distance = mahal( ...
+                boxcox_transform(features, lambda), ...
+                boxcox_transform(obj.training_set, lambda) ...
+            );
         end
     end
 end

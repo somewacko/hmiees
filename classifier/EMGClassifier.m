@@ -9,7 +9,9 @@ classdef EMGClassifier < handle
                         % features the classifier will extract.
                         
         sampling_period % The length of samples to read from when
-                        % extracting features for a signal
+                        % extracting features for a signal.
+                        
+        lambda          % Parameter value used for power transform.
     end
     
     
@@ -21,11 +23,15 @@ classdef EMGClassifier < handle
                         
             obj.sampling_period = sampling_period;
             
+            % Defaults
+            
             obj.features = [ EMGFeature.MAV,  ...
                              EMGFeature.VAR,  ...
                              EMGFeature.WAMP, ...
                              EMGFeature.WL,   ...
                              EMGFeature.ZC ];
+                         
+            obj.lambda = 0.1;
         end
         
         
@@ -95,7 +101,7 @@ classdef EMGClassifier < handle
             
             for i = 1:length(obj.gestures)
                 
-                d = obj.gestures(i).mahal_distance(feat);
+                d = obj.gestures(i).mahal_distance(feat, obj.lambda);
                 
                 if d < distance
                     gesture = obj.gestures(i);

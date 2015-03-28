@@ -3,7 +3,7 @@ classdef EMGFeature
     enumeration
         MAV     ('Mean Absolute Value',         []   ),
         MAVSLP  ('Mean Absolute Value Slope',   10   ),
-        SSC     ('Slope Sign Changes',          0.008 ),
+        SSC     ('Slope Sign Changes',          0.001 ),
         SSI     ('Simple Square Integral',      []   ),
         VAR     ('Variance',                    []   ),
         WAMP    ('Willison Amplitude',          0.05 ),
