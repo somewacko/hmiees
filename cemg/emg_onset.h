@@ -9,4 +9,10 @@
 #ifndef _EMG_ONSET_H
 #define _EMG_ONSET_H
 
+#include "emg_signal.h"
+#include "constants.h"
+
+bool OnOffDetection(emg_sample_t *current_member);
+
+
 #endif
