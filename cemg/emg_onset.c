@@ -19,13 +19,13 @@ bool OnOffDetection(emg_sample_t *current_member)
 	static float sum, base_variance; 			  //h:threshold value to detect onset
 	emg_sample_t  previous_member;
 	int n_of_m = 0;	      //n:number of above threshold samples out of m samples
-	float mean = 0.0, smean = 0.0 								  //m:number of samples in window
+	float mean = 0.0, smean = 0.0; 								  //m:number of samples in window
 											         			  //T1:number of successive windows to achieve "onset"
 	if(test_count<M){
 		sum += *current_member;
 		if(test_count == (M-1)){
-			mean = sum/M
-			smean = (sum*sum)/M
+			mean = sum/M;
+			smean = (sum*sum)/M;
 			base_variance = smean - mean*mean; 
 			previous_member = *current_member;	
 		}
