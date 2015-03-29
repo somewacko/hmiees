@@ -35,7 +35,7 @@ end
 % Test classifier at different sampling periods
 
 successes = [];
-periods   = 25:25:400;
+periods   = 50:50:400;
 
 for sampling_period = periods
 

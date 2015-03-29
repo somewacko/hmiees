@@ -31,7 +31,7 @@ classdef EMGClassifier < handle
                              EMGFeature.WL,   ...
                              EMGFeature.ZC ];
                          
-            obj.lambda = 0.52; % Found to be a good value @150ms
+            obj.lambda = 0.85; % Found to be a good value @150ms
         end
         
         
