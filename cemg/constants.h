@@ -6,4 +6,9 @@
 //
 //  -------- -------- -------- -------- -------- -------- -------- --------  //
 
+#ifndef _CONSTANTS_H
+#define _CONSTANTS_H
+
 typedef enum { false, true } bool;
+
+#endif

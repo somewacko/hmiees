@@ -11,7 +11,7 @@
 
 #include <stdint.h>
 
-#define MAX_EMG_SIGNAL_LENGTH 1000
+#define MAX_EMG_SIGNAL_LENGTH 10000
 
 typedef float emg_sample_t; // NOTE: This is assuming that we're going to use
                             // float on the microcontroller. (I was assured it

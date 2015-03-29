@@ -16,6 +16,8 @@
 //
 //  -------- -------- -------- -------- -------- -------- -------- --------  //
 
+#include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -141,6 +143,32 @@ int main(int argc, char *argv[])
 
     if (params.feats)
         test_features();
+
+
+    FILE *file = fopen(params.filename, "r");
+
+    if (file == NULL)
+    {
+        printf("\nUnable to open file!\n\n");
+        exit(0);
+    }
+
+    emg_signal_t sig;
+
+    int32_t s;
+    int i = 0;
+
+    while (fread(&s, 3, 1, file) == 1 && i < MAX_EMG_SIGNAL_LENGTH)
+        sig.samples[i++] = s/(float)pow(2,23);
+    sig.length = i;
+
+    printf("\n\nRead in signal:\n");
+    for (int i = 0; i < sig.length; i++)
+        printf("%0.3f ", sig.samples[i]);
+    printf("\n\n");
+
+    fclose(file);
+
 
     return 0;
 }
