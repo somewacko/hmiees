@@ -45,18 +45,19 @@ function successes = TestClassifierTwoChannel( ...
                     
                     for k = 1:length(signals_copy)
                         classifier.train_multiple_channels( ...
-                            signals_copy{i}, gesture);
+                            signals_copy{k}, gesture);
                     end
                 end
             end
 
             sig = signals{test_group}{test_signal};
             [gesture, ~] = classifier.classify(sig);
-            
-            fprintf('Recognized %s as %s\n', test_gesture.name, gesture.name);
 
             if gesture == test_gesture
                 successes(test_group) = successes(test_group) + 1;
+            else
+                fprintf('\tMistook %s for %s\n', ...
+                    test_gesture.name, gesture.name);
             end
         end
 

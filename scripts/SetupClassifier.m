@@ -1,10 +1,3 @@
-% EMGTwoChannelTest.m
-% Flynn, Michael
-%
-%   Script that reads in two channels of EMG signals and tests the
-%   classifier with them. Uses data from data/stefan/whole.
-
-
 % Read in data and cut signals into slices
 
 file_sampling_rate = 8000;
@@ -44,40 +37,16 @@ for i = 1:2:size(files, 2)
 end
 
 
-% Test classifier
+classifier = EMGClassifier(200);
+gestures = [];
 
-successes = [];
-periods   = 50:50:400;
-
-for sampling_period = periods
-
-    fprintf('\nSampling Period: %d ms\n', sampling_period);
-    
-    avg_success = TestClassifierTwoChannel( ...
-        signals, sampling_period, [], gesture_names);
-    
-    fprintf('\n\tAvg Success: %0.2f\n\n', mean(avg_success));
-
-    successes = [successes, mean(avg_success)]; %#ok<AGROW>
+for i = 1:size(signals, 2)
+    signals_copy = signals{i};
+    signals_copy(:,1) = [];
+    gesture = classifier.register_gesture(char(gesture_names(i)));
+    for k = 1:length(signals_copy)
+        classifier.train_multiple_channels(signals_copy{k}, gesture);
+    end
+    gestures = [gestures, gesture]; %#ok<AGROW>
 end
-
-% Display results on a bar graph
-
-figure(1); clf;
-bar(periods, successes);
-ylim([0 100]);
-
-ttl = sprintf(...
-    'Success Rates for Classifier With %d Gestures (2 channels)', ...
-    size(signals, 2));
-
-title(ttl);
-xlabel('Sampling Period');
-ylabel('Success Rate');
-
-
-
-
-
-
 

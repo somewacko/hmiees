@@ -6,9 +6,9 @@ classdef EMGFeature
         SSC     ('Slope Sign Changes',          0.001 ),
         SSI     ('Simple Square Integral',      []   ),
         VAR     ('Variance',                    []   ),
-        WAMP    ('Willison Amplitude',          0.05 ),
+        WAMP    ('Willison Amplitude',          0.001 ),
         WL      ('Waveform Length',             []   ),
-        ZC      ('Zero Crossings',              0.1  )
+        ZC      ('Zero Crossings',              0.001 )
     end
     
     properties
