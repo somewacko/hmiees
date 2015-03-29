@@ -1,0 +1,9 @@
+Channel 1:	Top of the forearm
+Channel 2:	Inside of the forearm (the one from before)
+
+Sampling Rate: 8000
+Signed 24-bit raw.
+
+Performed by Stefan.
+
+Last six or so trials of inward flex and reverse-outward-flex, stefan clenched his fist.
