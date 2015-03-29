@@ -11,10 +11,10 @@ function onset_array = detect_onset(signals)
 
 M = 1000;   % Number of "no motion" samples to set base_variance
 
-h = 12;     % Threshold value to detect onset
-n = 8;      % Number of above threshold samples out of m samples
-m = 10;     % Number of samples in window
-T1 = 80;    % Number of successive windows to achieve "onset"
+h = 40;     % Threshold value to detect onset
+n = 1;      % Number of above threshold samples out of m samples
+m = 12;      % Number of samples in window
+T1 = 20;    % Number of successive windows to achieve "onset"
 
 base_variance = var( signals(1:M,:) );
 
