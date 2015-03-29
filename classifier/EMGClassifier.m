@@ -71,6 +71,38 @@ classdef EMGClassifier < handle
         end
         
         
+        function train_multiple_channels(obj, signals, gesture)
+            % Trains the classifier with a new two-channel signal that is
+            % of the same class as the provided gesture.
+            
+            % signal  : A two-column signal that has each channel in its
+            %           own column.
+            % gesture : The gesture that is of the same class as the
+            %           provided signal. Must be a gesture that is
+            %           already registered with the classifier.
+            
+            % Note: because the original train() function uses multiple
+            % columns to train multiple signals at once, this function
+            % had to be created separate from that. In the future we may
+            % want to consolidate these function and rewrite old files to
+            % not train multiple signals that way..
+            
+            obj.check_length(signals);
+            
+            N = obj.sampling_period;
+            
+            feats = [];
+            
+            for i = 1:size(signals, 2)
+                f = obj.extract_features(signals(1:N, i));
+                feats = [feats, f]; %#ok<AGROW>
+            end
+            
+            gesture.add_training_set(feats);
+            
+        end
+        
+        
         function [gesture, distance] = classify(obj, signal)
             % Classifies the signal as one of the registered gestures
             % by comparing the Mahalanobis distances from each gesture
@@ -86,30 +118,29 @@ classdef EMGClassifier < handle
             
             obj.check_length(signal);
             
-            if size(signal, 2) > 1
-                error(['Only one signal is allowed to be ', ...
-                    'classified at a time. Signals must ',  ...
-                    'be a single-column vector.']);
-            end
-            
             gesture  = [];
             distance = Inf;
             
             N = obj.sampling_period;
             
-            feat = obj.extract_features(signal(1:N,:));
+            feats = [];
             
+            for i = 1:size(signal, 2)
+                f = obj.extract_features(signal(1:N, i));
+                feats = [feats, f]; %#ok<AGROW>
+            end
+                        
             for i = 1:length(obj.gestures)
                 
-                d = obj.gestures(i).mahal_distance(feat, obj.lambda);
-                
+                d = obj.gestures(i).mahal_distance(feats, obj.lambda);
+               
                 if d < distance
                     gesture = obj.gestures(i);
                     distance = d;
                 end
             end
         end
-        
+                
         
         function feat = extract_features(obj, signal)
             % Extracts the features for a given signal according to the
@@ -174,6 +205,7 @@ classdef EMGClassifier < handle
             %          its own column.
             
             if size(signal, 1) < obj.sampling_period
+                signal
                 error(['Signal(s) provided are shorter than the ', ...
                     'classifier''s sampling period']);
             end
