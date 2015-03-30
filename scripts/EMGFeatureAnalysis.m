@@ -6,24 +6,37 @@
 clf;
 
 file_sampling_rate = 8000;
-sampling_period    = 100;
+sampling_period    = 50;
 
-directories = {
-    'data/flynn/slices/simple_squeeze/', ...
-    'data/flynn/slices/reverse_grasp/',  ...
-    'data/flynn/slices/inwards_bend/'    ...
+files = {
+    %'data/stefan/whole/2xClockwise_two_Sharpley1.raw',   ...
+    %'data/stefan/whole/2xClockwise_two_Sharpley2.raw',   ...
+    %'data/stefan/whole/2xCounter_two_Sharpley1.raw',     ...
+    %'data/stefan/whole/2xCounter_two_Sharpley2.raw',     ...
+    'data/stefan/whole/InwardFlex_two_Sharpley1.raw',    ...
+    'data/stefan/whole/InwardFlex_two_Sharpley2.raw',    ...
+    'data/stefan/whole/OutwardFlex_two_Sharpley1.raw',   ...
+    'data/stefan/whole/OutwardFlex_two_Sharpley2.raw',   ...
+    'data/stefan/whole/RevGrasp_two_Sharpley1.raw',      ...
+    'data/stefan/whole/RevGrasp_two_Sharpley2.raw',      ...
+    'data/stefan/whole/SimpleSqueeze_two_Sharpley1.raw', ...
+    'data/stefan/whole/SimpleSqueeze_two_Sharpley2.raw'  ...
 };
 
 names = {
-    'Simple Squeeze', ...
-    'Reverse Grasp',  ...
-    'Inwards Bend'    ...
+    %'CW Rot.       ', ...
+    %'C-CW Rot.     ', ...
+    'Inward Flex   ', ...
+    'Outward Flex  ', ...
+    'Reverse Grasp ', ...
+    'Simple Squeeze'  ...
 };
 
 colors = {
     'b.', ...
     'c.', ...
-    'g.'  ...
+    'g.', ...
+    'm.'  ...
 };
 
 fprintf('\n');
@@ -33,13 +46,15 @@ fprintf('\n');
 
 % Read in signals
 
-signals = cell(1, size(directories, 2));
+signals = cell(1, size(files, 2)/2);
 
-for i = 1:size(directories, 2)
-    directory = char(directories(i));
-        
-    sig = get_emg_group(directory, file_sampling_rate);
-    signals(i) = {sig(1:sampling_period,:)};
+n = 1;
+for i = 1:2:size(files, 2)
+    signals(n) = {get_two_channel_signals( ...
+        char(files(i)), char(files(i+1)), ...
+        file_sampling_rate, sampling_period ...
+    )};
+    n = n+1;
 end
 
 
@@ -53,35 +68,32 @@ feats = [ ...
 ];
 
 for i = 1:length(feats)
+    for channel = 1:2
+        
+        fprintf('Channel %d:\n\n', channel);
     
-    calc = cell(1, size(directories, 2));
-    
-    for l = 1:size(directories, 2)
-        calc(l) = {feats(i).extract(cell2mat(signals(l)), [])};
-    end
-    
-    fprintf('%s:\n', feats(i).name);
-    for l = 1:size(directories, 2)
-        fprintf('\t%s\n', char(names(l)));
-        fprintf('\t\tMean: %f\n', mean( cell2mat(calc(l)) ));
-        fprintf('\t\tStd:  %f\n',  std( cell2mat(calc(l)) ));
+        calc = cell(1, length(signals));
+
+        for grp = 1:length(signals)
+            x = [];
+            for n = 1:length(signals{grp})
+                x = [ x, feats(i).extract( ...
+                    signals{grp}{n}(:,channel), []) ]; %#ok<AGROW>
+            end
+            calc(grp) = {x};
+        end
+
+        fprintf('%s:\n', feats(i).name);
+        for l = 1:length(signals)
+            fprintf('\t%s\n', char(names(l)));
+            fprintf('\t\tMean: %f\n', mean( cell2mat(calc(l)) ));
+            fprintf('\t\tStd:  %f\n',  std( cell2mat(calc(l)) ));
+        end
     end
 end
 
 
 % Plot features with parameters
-
-fig_ssc = figure(1); clf;
-title('SSC');
-xlabel('Parameter Value');
-
-fig_wamp = figure(2); clf;
-title('Willison Amplitude');
-xlabel('Parameter Value');
-
-fig_zc = figure(3); clf;
-title('Zero Crossings');
-xlabel('Parameter Value');
 
 feats = [ ...
     EMGFeature.SSC,  ...
@@ -91,30 +103,46 @@ feats = [ ...
 
 for i = 1:length(feats)
     
-    figure(i); clf; hold on;
-    title(feats(i).name);
-    xlabel('Value');
+    figure(i); clf;
     
-    val = 0:0.001:0.5;
-    
-    if feats(i) == EMGFeature.SSC
-        val = 0:0.0001:0.05;
-    end
-    
-    for l = 1:size(directories, 2)
-    
-        avgs = zeros(1, length(val));
-        stds = zeros(1, length(val));
+    for channel = 1:2
         
-        for n = 1:length(val)
-            wamp = feats(i).extract(cell2mat(signals(l)), val(n));
-            avgs(n) = mean(wamp);
-            stds(n) = std(wamp); 
+        subplot(210+channel); hold on;
+        
+        title(feats(i).name);
+        xlabel('Value');
+
+        val = 0:0.0005:0.05;
+
+        if feats(i) == EMGFeature.SSC
+            val = 0:0.00001:0.001;
+        elseif feats(i) == EMGFeature.WAMP
+            val = 0:0.0001:0.02;
+        elseif feats(i) == EMGFeature.ZC
+            val = 0:0.0001:0.02;
+        end
+
+        for grp = 1:length(signals)
+            
+            avgs = zeros(1, length(val));
+            stds = zeros(1, length(val));
+            
+            for v = 1:length(val)
+                x = [];
+                for n = 1:length(signals{grp})
+                    x = [ x, feats(i).extract( ...
+                        signals{grp}{n}(:,channel), val(v)) ]; %#ok<AGROW>
+                end
+                avgs(v) = mean(x);
+                stds(v) = std(x);
+            end
+
+            plot(val, avgs, char(colors(grp)));
         end
         
-        errorbar(val, avgs, stds, char(colors(l)));
+        hold off;
     end
     
-    hold off;
+    legend('IF', 'OF', 'RG', 'SS');
 end
 

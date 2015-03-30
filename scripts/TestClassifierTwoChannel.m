@@ -1,4 +1,4 @@
-function successes = TestClassifierTwoChannel( ...
+function [successes, distances] = TestClassifierTwoChannel( ...
     signals, sampling_period, lambda, names ...
 )
     % Tests the classifier with a group of two-channel signals.
@@ -10,6 +10,7 @@ function successes = TestClassifierTwoChannel( ...
     %                   individual gesture.
 
     successes = zeros(1, size(signals, 2));
+    distances = [];
 
     for test_group = 1:size(signals, 2)
         for test_signal = 1:size(signals{test_group}, 2)
@@ -51,13 +52,15 @@ function successes = TestClassifierTwoChannel( ...
             end
 
             sig = signals{test_group}{test_signal};
-            [gesture, ~] = classifier.classify(sig);
+            [gesture, distance] = classifier.classify(sig);
 
             if gesture == test_gesture
                 successes(test_group) = successes(test_group) + 1;
+                distances = [distances, distance]; %#ok<AGROW>
             else
-                fprintf('\tMistook %s for %s\n', ...
-                    test_gesture.name, gesture.name);
+                fprintf('\tMistook %s (%2d) for %s (d = %0.2f)\n', ...
+                    test_gesture.name, test_signal, ...
+                    gesture.name, distance);
             end
         end
 
