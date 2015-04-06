@@ -129,6 +129,21 @@ void test_features()
 }
 
 
+// ---- Reading in file
+
+emg_sample_t get_24bit_sample(FILE * file)
+{
+    int32_t raw_sample = 0;
+
+    fread(&raw_sample, 3, 1, file);
+
+    if (raw_sample & 0x00800000)
+        raw_sample |= 0xff000000;
+
+    return raw_sample / (emg_sample_t)pow(2,23);
+}
+
+
 // ---- Main entry
 
 int main(int argc, char *argv[])
@@ -139,10 +154,11 @@ int main(int argc, char *argv[])
     printf("frate:    %d\n", params.frate);
     printf("speriod:  %d\n", params.speriod);
 
-    // Test features with generated 
+    // Test features with generated signals
 
     if (params.feats)
         test_features();
+
 
 
     FILE *file = fopen(params.filename, "r");
@@ -153,22 +169,14 @@ int main(int argc, char *argv[])
         exit(0);
     }
 
-    emg_signal_t sig;
+    while (!feof(file))
+    {
+        emg_sample_t sample = get_24bit_sample(file);
+        printf("Read in %6.2f", sample);
+        getchar();
+    }
 
-    int32_t s;
-    int i = 0;
-
-    while (fread(&s, 3, 1, file) == 1 && i < MAX_EMG_SIGNAL_LENGTH)
-        sig.samples[i++] = s/(float)pow(2,23);
-    sig.length = i;
-
-    printf("\n\nRead in signal:\n");
-    for (int i = 0; i < sig.length; i++)
-        printf("%0.3f ", sig.samples[i]);
-    printf("\n\n");
-
-    fclose(file);
-
+    fclose(file);    
 
     return 0;
 }

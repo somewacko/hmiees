@@ -63,20 +63,20 @@ fprintf('\n');
 % Test classifier
 
 successes = [];
-periods   = 50:50:400;
+periods   = 25:25:400;
 
 for sampling_period = periods
 
     fprintf('Testing with Sampling Period: %d ms\n\n', sampling_period);
     
     [avg_successes, distances] = TestClassifierTwoChannel( ...
-        signals, sampling_period, [], gesture_names);
+        signals, sampling_period, [], gesture_names, 1);
     
-    fprintf('\n');
-    for i = 1:length(avg_successes)
-        fprintf('\t%s success : %0.2f\n', ...
-            char(gesture_names(i)), avg_successes(i));
-    end
+    %fprintf('\n');
+    %for i = 1:length(avg_successes)
+    %    fprintf('\t%s success : %0.2f\n', ...
+    %        char(gesture_names(i)), avg_successes(i));
+    %end
     
     avg = 0;
     for i = 1:length(avg_successes)
@@ -84,10 +84,10 @@ for sampling_period = periods
     end
     
     fprintf('\n\tAvg Success : %0.2f\n\n', avg);
-    fprintf(  '\tAvg Successful Distance : %0.2f\n', mean(distances));
-    fprintf(  '\tStd Successful Distance : %0.2f\n', std(distances));
-    fprintf(  '\tMax Successful Distance : %0.2f\n', max(distances));
-    fprintf(  '\tMin Successful Distance : %0.2f\n\n', min(distances));
+    %fprintf(  '\tAvg Successful Distance : %0.2f\n', mean(distances));
+    %fprintf(  '\tStd Successful Distance : %0.2f\n', std(distances));
+    %fprintf(  '\tMax Successful Distance : %0.2f\n', max(distances));
+    %fprintf(  '\tMin Successful Distance : %0.2f\n\n', min(distances));
 
     successes = [successes, avg]; %#ok<AGROW>
 end

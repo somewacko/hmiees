@@ -31,7 +31,7 @@ classdef EMGClassifier < handle
                              EMGFeature.WL,   ...
                              EMGFeature.ZC ];
                          
-            obj.lambda = 0.85; % Found to be a good value @150ms
+            obj.lambda = 0.40; % Found to be a good value @150ms
         end
         
         
@@ -205,7 +205,7 @@ classdef EMGClassifier < handle
             %          its own column.
             
             if size(signal, 1) < obj.sampling_period
-                signal
+                size(signal)
                 error(['Signal(s) provided are shorter than the ', ...
                     'classifier''s sampling period']);
             end
