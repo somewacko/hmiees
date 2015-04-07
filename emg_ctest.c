@@ -6,6 +6,8 @@
 //  microcontroller.
 //
 //  usage:
+//      -feats         : Calculates features for the entire file up to
+//                       MAX_EMG_SIGNAL_LENGTH.
 //      -file {name}   : Specifies a 24-bit signed raw emg signal file to
 //                       read in. (Required)
 //      -frate {val}   : Gives the sampling rate of the file being read
@@ -35,7 +37,7 @@ void print_usage()
 {
     printf("\n"
         "Usage:\n"
-        "\t-feats         : Tests features with generated signals.\n"
+        "\t-feats         : Calculates features for the entire file.\n"
         "\t-file {name}   : Specifies a 24-bit signed raw emg signal file to\n"
         "\t                 read in. (Required)\n"
         "\t-frate {val}   : Gives the sampling rate of the file being read\n"
@@ -99,48 +101,29 @@ emg_params_t parse_args(int argc, char *argv[])
 }
 
 
-// ---- Testing features
-
-void test_features()
-{
-    // Generate a sawtooth signal from ~ -1 to 1 with
-    // a period of 10 samples
-
-    emg_signal_t sig;
-    sig.length = 100;
-
-    printf("\nTesting signal:\n\n");
-
-    for (int i = 0; i < sig.length; i++)
-    {
-        sig.samples[i] = (i%10-5)/(emg_sample_t)5;
-        printf("%5.2f ", sig.samples[i]);
-    }
-    
-    // Extract and print features from this test signal.
-
-    printf("\n\n");
-    printf("MAV  : %7.2f\n", extract_feature(&sig, emg_feat_MAV,  0   ));
-    printf("VAR  : %7.2f\n", extract_feature(&sig, emg_feat_VAR,  0   ));
-    printf("WAMP : %7.2f\n", extract_feature(&sig, emg_feat_WAMP, 0.05));
-    printf("WL   : %7.2f\n", extract_feature(&sig, emg_feat_WL,   0   ));
-    printf("ZC   : %7.2f\n", extract_feature(&sig, emg_feat_ZC,   0.10));
-    printf("\n");
-}
-
-
 // ---- Reading in file
 
-emg_sample_t get_24bit_sample(FILE * file)
+emg_sample_t get_24bit_sample(FILE * file, unsigned downsample_factor)
 {
+    emg_sample_t samples[downsample_factor];
+
     int32_t raw_sample = 0;
 
-    fread(&raw_sample, 3, 1, file);
+    // Read in D samples, return only the first one. (No filtering for now)
 
-    if (raw_sample & 0x00800000)
-        raw_sample |= 0xff000000;
+    for (unsigned i = 0; i < downsample_factor; i++)
+    {
+        fread(&raw_sample, 3, 1, file);
 
-    return raw_sample / (emg_sample_t)pow(2,23);
+        if (raw_sample & 0x00800000)
+            raw_sample |= 0xff000000;
+
+        samples[i] = raw_sample / (emg_sample_t) pow(2,23);
+
+        raw_sample = 0;
+    }
+
+    return samples[0];
 }
 
 
@@ -150,16 +133,7 @@ int main(int argc, char *argv[])
 {
     emg_params_t params = parse_args(argc, argv);
 
-    printf("filename: %s\n", params.filename);
-    printf("frate:    %d\n", params.frate);
-    printf("speriod:  %d\n", params.speriod);
-
-    // Test features with generated signals
-
-    if (params.feats)
-        test_features();
-
-
+    const unsigned d_factor = params.frate / SAMPLING_RATE;
 
     FILE *file = fopen(params.filename, "r");
 
@@ -169,11 +143,36 @@ int main(int argc, char *argv[])
         exit(0);
     }
 
-    while (!feof(file))
+    if (params.feats)
     {
-        emg_sample_t sample = get_24bit_sample(file);
-        printf("Read in %6.2f", sample);
-        getchar();
+        emg_signal_t sig;
+
+        unsigned i = 0;
+
+        while (!feof(file) && i < MAX_EMG_SIGNAL_LENGTH)
+            sig.samples[i++] = get_24bit_sample(file, d_factor);
+
+        sig.length = i;
+
+        // Extract and print features from this test signal.
+
+        printf("\nFeatures for first %u samples in %s:\n\n",
+            sig.length, params.filename);
+        printf("MAV  : %7.3f\n", extract_feature(&sig, emg_feat_MAV,  0    ));
+        printf("VAR  : %7.3f\n", extract_feature(&sig, emg_feat_VAR,  0    ));
+        printf("WAMP : %7.3f\n", extract_feature(&sig, emg_feat_WAMP, 0.006));
+        printf("WL   : %7.3f\n", extract_feature(&sig, emg_feat_WL,   0    ));
+        printf("ZC   : %7.3f\n", extract_feature(&sig, emg_feat_ZC,   0.004));
+        printf("\n");
+    }
+    else
+    {
+        printf("\nReading in signal from %s...\n\n", params.filename);
+
+        while (!feof(file))
+            process_sample( get_24bit_sample(file, d_factor) );
+
+        printf("\nFinished!\n\n");
     }
 
     fclose(file);    

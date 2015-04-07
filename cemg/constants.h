@@ -1,5 +1,5 @@
 //  -------- -------- -------- -------- -------- -------- -------- --------  //
-//  constants.c
+//  constants.h
 //  flynn, michael
 //
 //  constants and utility types for the program.
@@ -10,5 +10,7 @@
 #define _CONSTANTS_H
 
 typedef enum { false, true } bool;
+
+#define SAMPLING_RATE 1000;
 
 #endif

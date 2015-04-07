@@ -9,3 +9,8 @@
 
 #include "emg_processing.h"
 
+void process_sample(emg_sample_t sample)
+{
+
+}
+
