@@ -36,7 +36,7 @@ float mean_absolute_value(emg_signal_t *sig)
 {
     float mav = 0.f;
 
-    for (int i = 0; i < sig->length; i++)
+    for (unsigned i = 0; i < sig->length; i++)
         mav += fabs(sig->samples[i]) / (float)sig->length;
 
     return mav;
@@ -47,7 +47,7 @@ float variance(emg_signal_t *sig)
 {
     float mean = 0.f, sq_mean = 0.f;
 
-    for (int i = 0; i < sig->length; i++)
+    for (unsigned i = 0; i < sig->length; i++)
     {
         emg_sample_t s = sig->samples[i];
 
@@ -61,9 +61,9 @@ float variance(emg_signal_t *sig)
 
 float wilson_amplitude(emg_signal_t *sig, float threshold)
 {
-    int count = 0;
+    unsigned count = 0;
 
-    for (int i = 0; i < sig->length-1; i++)
+    for (unsigned i = 0; i < sig->length-1; i++)
         if ( fabs(sig->samples[i]-sig->samples[i+1]) >= threshold )
             count++;
 
@@ -75,7 +75,7 @@ float waveform_length(emg_signal_t *sig)
 {
     float wl = 0;
 
-    for (int i = 1; i < sig->length; i++)
+    for (unsigned i = 1; i < sig->length; i++)
         wl += fabs(sig->samples[i]-sig->samples[i-1]);
 
     return wl;
@@ -84,11 +84,11 @@ float waveform_length(emg_signal_t *sig)
 
 float zero_crossings(emg_signal_t *sig, float threshold)
 {
-    int count = 0;
+    unsigned count = 0;
 
-    for (int i = 0; i < sig->length-1; i++)
-        if (abs(sig->samples[i]-sig->samples[i+1]) >= threshold)
-            if (-1 * sig->samples[i] * sig->samples[i+1] > 0)
+    for (unsigned i = 0; i < sig->length-1; i++)
+        if (fabs(sig->samples[i] - sig->samples[i+1]) >= threshold)
+            if ((-sig->samples[i] * sig->samples[i+1]) > 0)
                 count++;
 
     return count;
