@@ -12,6 +12,6 @@
 
 #include "emg_signal.h"
 
-void process_sample(emg_sample_t sample);
+void process_sample(emg_sample_t sample, const unsigned speriod);
 
 #endif

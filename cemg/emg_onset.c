@@ -11,7 +11,7 @@
 #include "emg_onset.h"
 
 
-bool OnOffDetection(emg_sample_t current_member)
+bool onset_detected(emg_sample_t current_member)
 {
 	int M = 1000, h = 4, n = 2, m = 5, T1 = 80;     			  //M:number of "no motion" samples to set base_variance
 	static int active, off, activeflag;                							 //these should occur at beginning of the sample set

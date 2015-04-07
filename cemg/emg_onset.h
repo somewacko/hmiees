@@ -13,7 +13,7 @@
 #include "constants.h"
 
 
-bool OnOffDetection(emg_sample_t current_member);
+bool onset_detected(emg_sample_t current_member);
 
 
 #endif

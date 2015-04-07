@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
         printf("\nReading in signal from %s...\n\n", params.filename);
 
         while (!feof(file))
-            process_sample( get_24bit_sample(file, d_factor) );
+            process_sample( get_24bit_sample(file, d_factor), params.speriod );
 
         printf("\nFinished!\n\n");
     }
