@@ -94,3 +94,23 @@ float zero_crossings(emg_signal_t *sig, float threshold)
     return count;
 }
 
+
+char * feature_name(emg_feature_t feat)
+{
+    switch (feat)
+    {
+        case emg_feat_MAV:
+            return "MAV ";
+        case emg_feat_VAR:
+            return "VAR ";
+        case emg_feat_WAMP:
+            return "WAMP";
+        case emg_feat_WL:
+            return "WL  ";
+        case emg_feat_ZC:
+            return "ZC  ";
+        default:
+            return "FEAT";
+    }
+}
+

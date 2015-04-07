@@ -17,7 +17,8 @@ typedef enum emg_feature_t
     emg_feat_VAR,
     emg_feat_WAMP,
     emg_feat_WL,
-    emg_feat_ZC
+    emg_feat_ZC,
+    emg_feature_count
 } emg_feature_t;
 
 // Dynamic function that will calculate the feature
@@ -32,5 +33,9 @@ float variance(emg_signal_t *sig);
 float wilson_amplitude(emg_signal_t *sig, float threshold);
 float waveform_length(emg_signal_t *sig);
 float zero_crossings(emg_signal_t *sig, float threshold);
+
+// Get the name of the feature
+
+char * feature_name(emg_feature_t feat);
 
 #endif
