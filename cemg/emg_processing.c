@@ -14,6 +14,9 @@
 
 #include <stdio.h>
 
+
+// ---- States for the device
+
 typedef enum processing_state_t
 {
     waiting_for_onset,
@@ -22,23 +25,26 @@ typedef enum processing_state_t
 } processing_state_t;
 
 
+// ---- Processing methods
+
 void extract_all_features(float features[], emg_signal_t * sig)
 {
+    // Extract features using 0.005 as a default parameter for now..
     for (emg_feature_t feat = 0; feat < emg_feature_count; feat++)
         features[feat] = extract_feature(sig, feat, 0.005);
+}
 
+
+void transmit_features(float features[])
+{
+    // { Actual transmittion yet to be implemented... }
+    
     #ifdef __CEMG_TEST__
     printf("\nExtracted features:\n");
     for (emg_feature_t f = 0; f < emg_feature_count; f++)
         printf("\t%s - %5.2f\n", feature_name(f), features[f]);
     printf("\n");
     #endif
-}
-
-
-void transmit_features(float features[])
-{
-    // To be implemented on PIC...
 }
 
 

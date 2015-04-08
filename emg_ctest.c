@@ -115,13 +115,17 @@ emg_sample_t get_24bit_sample(FILE * file, unsigned downsample_factor)
 
     for (unsigned i = 0; i < downsample_factor; i++)
     {
+        // Read in 24-bit signed sample
         fread(&raw_sample, 3, 1, file);
 
+        // If negative, pad the top byte with 1's (24 -> 32 bit)
         if (raw_sample & 0x00800000)
             raw_sample |= 0xff000000;
 
+        // Normalize between -1 and 1
         samples[i] = raw_sample / (emg_sample_t) pow(2,23);
 
+        // Reset sample (fread will leave top byte 0xff)
         raw_sample = 0;
     }
 
