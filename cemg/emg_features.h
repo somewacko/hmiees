@@ -11,6 +11,9 @@
 
 #include "emg_signal.h"
 
+
+// ---- Different kinds of features
+
 typedef enum emg_feature_t
 {
     emg_feat_MAV,
@@ -21,12 +24,14 @@ typedef enum emg_feature_t
     emg_feature_count
 } emg_feature_t;
 
-// Dynamic function that will calculate the feature
-// indicated by emg_feature_t
+
+// ---- Dynamic function that will calculate the feature
+//      indicated by emg_feature_t
 
 float extract_feature(emg_signal_t *sig, emg_feature_t feat, float param);
 
-// Functions for calculating individual features
+
+// ---- Functions for calculating individual features
 
 float mean_absolute_value(emg_signal_t *sig);
 float variance(emg_signal_t *sig);
@@ -34,8 +39,10 @@ float wilson_amplitude(emg_signal_t *sig, float threshold);
 float waveform_length(emg_signal_t *sig);
 float zero_crossings(emg_signal_t *sig, float threshold);
 
-// Get the name of the feature
+
+// ---- Get the name of the feature
 
 char * feature_name(emg_feature_t feat);
+
 
 #endif
