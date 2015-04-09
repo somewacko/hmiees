@@ -26,8 +26,6 @@
 #include "cemg/emg_processing.h"
 #include "cemg/emg_signal.h"
 
-#define __CEMG_TEST__
-
 
 // ---- Message to display when used incorrectly
 

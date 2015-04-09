@@ -15,12 +15,43 @@
 #include <stdio.h>
 
 
+// ---- 7th-order butterworth filter coefficients to get cutoff frequency
+//      of 500 Hz from 8000 Hz
+//
+//      matlab:
+// 
+//      > [b, a] = butter(7, 2*1000/8000);
+//      > a =
+//           1.0000000000  -5.2367698634  11.9272434137 -15.2840131998
+//          11.8827420583  -5.5983497659   1.4785129329 - 0.1687178026
+//      > b = 
+//           0.0000050607   0.0000354251   0.0001062753   0.0001771255
+//           0.0001771255   0.0001062753   0.0000354251   0.0000050607
+
+static const unsigned filt_size = 8;
+
+static const float filt_a[] = {
+     1.0000000000, - 5.2367698634,
+    11.9272434137, -15.2840131998,
+    11.8827420583, - 5.5983497659,
+     1.4785129329, - 0.1687178026
+};
+
+static const float filt_b[] = {
+     0.0000050607,   0.0000354251,
+     0.0001062753,   0.0001771255,
+     0.0001771255,   0.0001062753, 
+     0.0000354251,   0.0000050607
+};
+
+
 // ---- States for the device
 
 typedef enum processing_state_t
 {
-    waiting_for_onset,
-    recording_samples
+    pstate_waiting_for_onset,
+    pstate_recording_samples,
+    pstate_waiting_for_rest
 
 } processing_state_t;
 
@@ -55,34 +86,9 @@ void read_in_sample(processing_info_t * processing_info, emg_sample_t sample)
     processing_info->input_buffer[buffer_index] = sample;
 
 
-    // 7th-order butterworth filter coefficients to get cutoff frequency
-    // of 500 Hz from 8000 Hz
-
-    // ---- matlab:
-    // 
-    // > [b, a] = butter(7, 2*1000/8000);
-    // > a =
-    //         1.0000000000  -5.2367698634  11.9272434137 -15.2840131998
-    //        11.8827420583  -5.5983497659   1.4785129329 - 0.1687178026
-    // > b = 
-    //         0.0000050607   0.0000354251   0.0001062753   0.0001771255
-    //         0.0001771255   0.0001062753   0.0000354251   0.0000050607
-
-    const unsigned filt_size = 8;
-
-    const float a[] = {   1.0000000000, - 5.2367698634,
-                         11.9272434137, -15.2840131998,
-                         11.8827420583, - 5.5983497659,
-                          1.4785129329, - 0.1687178026  };
-
-    const float b[] = {   0.0000050607,   0.0000354251,
-                          0.0001062753,   0.0001771255,
-                          0.0001771255,   0.0001062753, 
-                          0.0000354251,   0.0000050607  };
-
-
     // Indicies from current index down without going out of bounds
-    // (eg: 3, 2, 1, 0, 7, 6...)
+    // (e.g. with current index = 1: z={1, 0, 7, 6..} so that z[n] is
+    // the corresponding index for x*z^-n)
 
     unsigned z[BUFFER_SIZE]; 
     for (int i = 0; i < BUFFER_SIZE; i++)
@@ -94,9 +100,9 @@ void read_in_sample(processing_info_t * processing_info, emg_sample_t sample)
     emg_sample_t filtered_sample = 0;
 
     for (unsigned i = 0; i < filt_size; i++)
-        filtered_sample += b[i] * processing_info->input_buffer [ z[i] ];
+        filtered_sample += filt_b[i] * processing_info->input_buffer [ z[i] ];
     for (unsigned i = 1; i < filt_size; i++)
-        filtered_sample -= a[i] * processing_info->output_buffer[ z[i] ];
+        filtered_sample -= filt_a[i] * processing_info->output_buffer[ z[i] ];
 
     processing_info->output_buffer[buffer_index] = filtered_sample;
 
@@ -126,13 +132,11 @@ void extract_all_features(float features[], emg_signal_t * sig)
 void transmit_features(float features[])
 {
     // { Actual transmittion yet to be implemented... }
-    
-    #ifdef __CEMG_TEST__
+
     printf("\nExtracted features:\n");
     for (emg_feature_t f = 0; f < emg_feature_count; f++)
         printf("\t%s - %5.2f\n", feature_name(f), features[f]);
     printf("\n");
-    #endif
 }
 
 
@@ -146,31 +150,26 @@ void process_sample(processing_info_t * processing_info)
 
     emg_sample_t sample = get_current_sample(processing_info);
 
-    if (total_count < 10)
-        printf("%d - Read in %7.4f\n", total_count, sample);
-
     switch (state)
     {
-        case waiting_for_onset:
+        case pstate_waiting_for_onset:
 
             // Wait for motion to begin before collecting
             // samples to extract features from.
 
             if (onset_detected(sample))
             {
-                #ifdef __CEMG_TEST__
                 printf("Onset detected at sample %u\n", total_count);
-                #endif
 
                 sig.samples[0] = sample;
                 count = 1;
 
-                state = recording_samples;
+                state = pstate_recording_samples;
             }
 
             break;
 
-        case recording_samples:
+        case pstate_recording_samples:
 
             // While motion is maintained, record samples until
             // enough to extract features from is obtained.
@@ -186,12 +185,25 @@ void process_sample(processing_info_t * processing_info)
                     extract_all_features(features, &sig);
                     transmit_features(features);
 
-                    state = waiting_for_onset;
+                    state = pstate_waiting_for_rest;
                 }
             }
             else
             {
-                state = waiting_for_onset;
+                state = pstate_waiting_for_onset;
+            }
+
+            break;
+
+        case pstate_waiting_for_rest:
+
+            // After the gesture has been transmitted, wait
+            // for motion rest before recognizing another.
+
+            if (!onset_detected(sample))
+            {
+                printf("Rest at %u\n", total_count);
+                state = pstate_waiting_for_onset;
             }
 
             break;
