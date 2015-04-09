@@ -10,7 +10,6 @@
 #include "emg_processing.h"
 
 #include "emg_features.h"
-#include "emg_onset.h"
 
 #include <stdio.h>
 
@@ -31,8 +30,9 @@ typedef enum processing_state_t
 processing_info_t init_processing_info(unsigned speriod)
 {
     processing_info_t processing_info = {
-        .buffer  = init_filter_buffer(),
-        .speriod = speriod
+        .buffer     = init_filter_buffer(),
+        .onset_info = init_onset_info(),
+        .speriod    = speriod
     };
 
     return processing_info;
@@ -83,7 +83,7 @@ void process_sample(processing_info_t * processing_info)
             // Wait for motion to begin before collecting
             // samples to extract features from.
 
-            if (onset_detected(sample))
+            if (onset_detected(&processing_info->onset_info, sample))
             {
                 printf("Onset detected at sample %u\n", total_count);
 
@@ -100,7 +100,7 @@ void process_sample(processing_info_t * processing_info)
             // While motion is maintained, record samples until
             // enough to extract features from is obtained.
 
-            if (onset_detected(sample))
+            if (onset_detected(&processing_info->onset_info, sample))
             {
                 sig.samples[count++] = sample;
 
@@ -126,7 +126,7 @@ void process_sample(processing_info_t * processing_info)
             // After the gesture has been transmitted, wait
             // for motion rest before recognizing another.
 
-            if (!onset_detected(sample))
+            if (!onset_detected(&processing_info->onset_info, sample))
             {
                 printf("Rest at %u\n", total_count);
                 state = pstate_waiting_for_onset;

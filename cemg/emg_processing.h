@@ -12,6 +12,7 @@
 
 #include "constants.h"
 #include "emg_filter.h"
+#include "emg_onset.h"
 #include "emg_signal.h"
 
 
@@ -24,6 +25,9 @@ typedef struct processing_info_t
 {
     // Buffer for the filtered signal
     emg_filter_buffer_t buffer;
+
+    // Onset info for the incoming signal
+    onset_info_t onset_info;
 
     // How many samples to read in after onset is detected
     unsigned speriod;

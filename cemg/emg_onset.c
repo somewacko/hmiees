@@ -8,8 +8,30 @@
 
 #include "emg_onset.h"
 
+#include <stdio.h>
 
-bool onset_detected(emg_sample_t sample)
+
+onset_info_t init_onset_info()
+{
+    onset_info_t onset_info = {
+        .base_var_count  = 0,
+        .is_active       = false,
+        .base_variance   = 0,
+        .base_mean       = 0,
+        .base_sq_mean    = 0,
+        .prev_sample     = 0,
+
+        .n_of_m          = 0,
+        .active_count    = 0,
+        .off_count       = 0,
+        .is_even         = false
+    };
+
+    return onset_info;
+}
+
+
+bool onset_detected(onset_info_t * info, emg_sample_t sample)
 {
     const int M  = 1000, // Number of "no motion" samples to set base variance.
               n  = 1,    // Number of above threshold samples out of m samples.
@@ -18,84 +40,69 @@ bool onset_detected(emg_sample_t sample)
 
     const float h = 40.f; // Threshold value to detect onset.
 
-    static bool activeflag;
-    static int active, off;
-    static unsigned base_var_count, count;
-    static float base_variance;
-    static emg_sample_t previous_sample;
-    static int n_of_m = 0;
-    static float mean, sq_mean, g = 0.0;
 
-    if (base_var_count < M) // Find base variance for the first M samples
+    if (info->base_var_count < M) 
     {
-        mean    += sample / (float) M;
-        sq_mean += (sample * sample) / (float) M;
+        // Find base variance in the first M samples
 
-        if (base_var_count == M-1)
+        info->base_mean    +=      sample       / (float) M;
+        info->base_sq_mean += (sample * sample) / (float) M;
+
+        if (++info->base_var_count == M)
         {
-            base_variance = sq_mean - mean * mean; 
-            previous_sample = sample;
-
-            printf("Baseline variance established: %0.8f\n", base_variance);
-            printf("mean = %0.8f, sq_mean = %0.8f\n",
-                mean, sq_mean);
+            info->base_variance = info->base_sq_mean
+                - info->base_mean * info->base_mean; 
         }
-
-        base_var_count++;
-
-        return false; // Return false while doing so.
     }
-    else // After establishing base variance, 
+    else if (info->is_even)
     {               
-        if (count % 2 == 0)
+        // Check for onset every other sample
+
+        float sq_sample = sample * sample;
+        float sq_prev_sample = info->prev_sample * info->prev_sample;
+
+        float g = (1 / info->base_variance) * (sq_sample + sq_prev_sample);
+    
+        if (g >= h)
         {
-            g = (1/base_variance) * ( sample*sample
-                + previous_sample*previous_sample );
-        
-            if (g >= h)
-            {
-                n_of_m += 1;
+            info->n_of_m += 1;
 
-                if (n_of_m >= m)
-                    n_of_m = m;       
-            }
-            else
-            {
-                n_of_m -= 1;
-
-                if (n_of_m <= 0)
-                    n_of_m = 0;
-            }
-            
-            if (!activeflag)
-            {
-                if (n_of_m >= n)
-                    active += 1;
-                else
-                    active = 0; 
-
-                if (active >= T1)
-                    activeflag = true;
-            }
-            else
-            {
-                if (n_of_m < n)
-                    off += 1;
-                else
-                    off = 0;
-                
-                if (off >= T1)
-                    activeflag = false;          
-            }
+            if (info->n_of_m >= m)
+                info->n_of_m = m;       
         }
         else
         {
-            previous_sample = sample;
+            info->n_of_m -= 1;
+
+            if (info->n_of_m <= 0)
+                info->n_of_m = 0;
         }
+        
+        if (!info->is_active)
+        {
+            if (info->n_of_m >= n)
+                info->active_count += 1;
+            else
+                info->active_count = 0; 
 
-        count++;
-
-        return activeflag;
+            if (info->active_count >= T1)
+                info->is_active = true;
+        }
+        else
+        {
+            if (info->n_of_m < n)
+                info->off_count += 1;
+            else
+                info->off_count = 0;
+            
+            if (info->off_count >= T1)
+                info->is_active = false;          
+        }
     }
+
+    info->is_even = !info->is_even;
+    info->prev_sample = sample;
+
+    return info->is_active;
 }
 

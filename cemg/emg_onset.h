@@ -13,7 +13,30 @@
 #include "constants.h"
 
 
-bool onset_detected(emg_sample_t current_member);
+typedef struct onset_info_t {
+
+    // Counting variable to establish base variance in first N samples
+    unsigned base_var_count;
+    
+    // Whether or not motion is active
+    bool is_active;
+
+    // The base variance to adjust threshold with
+    float base_variance, base_mean, base_sq_mean;
+
+    // The last sample read in
+    emg_sample_t prev_sample;
+
+    // Counts for the Bonato algorithm
+    int n_of_m, active_count, off_count;
+    bool is_even;
+
+} onset_info_t;
+
+
+onset_info_t init_onset_info();
+
+bool onset_detected(onset_info_t * onset_info, emg_sample_t sample);
 
 
 #endif
