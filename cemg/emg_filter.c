@@ -47,24 +47,30 @@ emg_filter_buffer_t init_filter_buffer()
         .current_index = 0
     };
 
-    for (unsigned i = 0; i < BUFFER_SIZE; i++)
+    for (unsigned n = 0; n < MAX_EMG_CHANNELS; n++)
     {
-        buffer.input_buffer[i]  = 0;
-        buffer.output_buffer[i] = 0;
+        for (unsigned i = 0; i < BUFFER_SIZE; i++)
+        {
+            buffer.input_buffer[n][i]  = 0;
+            buffer.output_buffer[n][i] = 0;
+        }
     }
 
     return buffer;
 }
 
 
-void insert_sample(emg_filter_buffer_t * buffer, emg_sample_t sample)
-{
+void insert_sample_group_filt_buffer(
+    emg_filter_buffer_t * buffer,
+    emg_sample_group_t * sample_group
+){
     // Determine the current index in the buffer and put in input buffer
 
     unsigned buffer_index = buffer->current_index + 1 >= BUFFER_SIZE ?
         0 : buffer->current_index + 1;
 
-    buffer->input_buffer[buffer_index] = sample;
+    for (unsigned i = 0; i < sample_group->num_channels; i++)
+        buffer->input_buffer[i][buffer_index] = sample_group->channels[i];
 
 
     // Indicies from current index down without going out of bounds
@@ -78,24 +84,36 @@ void insert_sample(emg_filter_buffer_t * buffer, emg_sample_t sample)
 
     // Apply filter
 
-    emg_sample_t filtered_sample = 0;
+    for (unsigned n = 0; n < sample_group->num_channels; n++)
+    {
+        emg_sample_t filtered_sample = 0;
 
-    for (unsigned i = 0; i < filt_size; i++)
-        filtered_sample += filt_b[i] * buffer->input_buffer [ z[i] ];
-    for (unsigned i = 1; i < filt_size; i++)
-        filtered_sample -= filt_a[i] * buffer->output_buffer[ z[i] ];
+        for (unsigned i = 0; i < filt_size; i++)
+            filtered_sample += filt_b[i] * buffer->input_buffer [n][ z[i] ];
+        for (unsigned i = 1; i < filt_size; i++)
+            filtered_sample -= filt_a[i] * buffer->output_buffer[n][ z[i] ];
 
-    buffer->output_buffer[buffer_index] = filtered_sample;
+        buffer->output_buffer[n][buffer_index] = filtered_sample;
+    }
 
 
-    // Update current index after processing is complete
+    // Update current index and num_channels after processing is complete
 
+    buffer->num_channels  = sample_group->num_channels;
     buffer->current_index = buffer_index;
 }
 
 
-emg_sample_t get_current_sample(emg_filter_buffer_t * buffer)
-{
-    return buffer->output_buffer[buffer->current_index];
+emg_sample_group_t get_current_sample_group(
+    emg_filter_buffer_t * buffer
+){
+    emg_sample_group_t sample_group = init_emg_sample_group(
+        buffer->num_channels
+    );
+
+    for (unsigned i = 0; i < buffer->num_channels; i++)
+        sample_group.channels[i] = buffer->output_buffer[i][buffer->current_index];
+
+    return sample_group;
 }
 

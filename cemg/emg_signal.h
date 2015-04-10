@@ -11,7 +11,7 @@
 
 
 #define MAX_EMG_SIGNAL_LENGTH 1000
-#define MAX_EMG_CHANNELS      4
+#define MAX_EMG_CHANNELS      3
 
 
 // ---- Base sample type that signals will be read in as.
@@ -33,11 +33,26 @@ typedef struct emg_signal_t
 
 } emg_signal_t;
 
+emg_signal_t init_emg_signal();
 
-// ---- Struct type to represent a group of emg signals
+
+// ---- Struct types to represent a group of emg signals
 //      coming from different sensors.
 
-typedef struct emg_group_t
+typedef struct emg_sample_group_t
+{
+    // Preallocated buffer of samples for each channel.
+    emg_sample_t channels[MAX_EMG_CHANNELS];
+
+    // Number of channels in this group.
+    unsigned num_channels;
+
+} emg_sample_group_t;
+
+emg_sample_group_t init_emg_sample_group(unsigned num_channels);
+
+
+typedef struct emg_signal_group_t
 {
     // Preallocated buffer of signals for each channel.
     emg_signal_t channels[MAX_EMG_CHANNELS];
@@ -48,7 +63,15 @@ typedef struct emg_group_t
     // Length of the smallest signal.
     unsigned length;
 
-} emg_group_t;
+} emg_signal_group_t;
+
+emg_signal_group_t init_emg_signal_group(unsigned num_channels);
+
+void insert_sample_group(
+    emg_signal_group_t * signal_group,
+    emg_sample_group_t * sample_group,
+    unsigned index
+);
 
 
 #endif

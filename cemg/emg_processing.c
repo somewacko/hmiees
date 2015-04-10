@@ -27,31 +27,42 @@ typedef enum processing_state_t
 
 // ---- processing_info_t methods
 
-processing_info_t init_processing_info(unsigned speriod)
+processing_info_t init_processing_info(unsigned num_channels, unsigned speriod)
 {
     processing_info_t processing_info = {
-        .buffer     = init_filter_buffer(),
-        .onset_info = init_onset_info(),
-        .speriod    = speriod
+        .buffer       = init_filter_buffer(),
+        .signal_group = init_emg_signal_group(num_channels),
+        .speriod      = speriod
     };
+
+    for (unsigned i = 0; i < MAX_EMG_CHANNELS; i++)
+        processing_info.onset_info[i] = init_onset_info();
+
+    processing_info.signal_group.length = speriod;
+
+    for (unsigned i = 0; i < MAX_EMG_CHANNELS; i++)
+        processing_info.signal_group.channels[i].length = speriod;
 
     return processing_info;
 }
 
 
-void read_in_sample(processing_info_t * processing_info, emg_sample_t sample)
-{
-    insert_sample(&processing_info->buffer, sample);
+void read_in_sample_group(
+    processing_info_t * processing_info,
+    emg_sample_group_t * sample_group
+){
+    insert_sample_group_filt_buffer(&processing_info->buffer, sample_group);
 }
 
 
 // ---- Main processing methods
 
-void extract_all_features(float features[], emg_signal_t * sig)
+void extract_all_features(float features[], emg_signal_group_t * signal_group)
 {
     // Extract features using 0.005 as a default parameter for now..
-    for (emg_feature_t feat = 0; feat < emg_feature_count; feat++)
-        features[feat] = extract_feature(sig, feat, 0.005);
+    for (unsigned n = 0; n < signal_group->num_channels; n++)
+        for (emg_feature_t f = 0; f < emg_feature_count; f++)
+            features[f] = extract_feature(&signal_group->channels[n], f, .005);
 }
 
 
@@ -69,12 +80,13 @@ void transmit_features(float features[])
 void process_sample(processing_info_t * processing_info)
 {
     static processing_state_t state;
-    static emg_signal_t sig;
-    static float features[emg_feature_count];
+    static float features[emg_feature_count * MAX_EMG_CHANNELS];
     static unsigned count;
     static unsigned total_count;
 
-    emg_sample_t sample = get_current_sample(&processing_info->buffer);
+    emg_sample_group_t sample_group = get_current_sample_group(
+        &processing_info->buffer
+    );
 
     switch (state)
     {
@@ -83,11 +95,16 @@ void process_sample(processing_info_t * processing_info)
             // Wait for motion to begin before collecting
             // samples to extract features from.
 
-            if (onset_detected(&processing_info->onset_info, sample))
+            if (onset_detected(processing_info->onset_info, sample_group.num_channels, &sample_group))
             {
                 printf("Onset detected at sample %u\n", total_count);
 
-                sig.samples[0] = sample;
+                insert_sample_group(
+                    &processing_info->signal_group,
+                    &sample_group,
+                    0
+                );
+
                 count = 1;
 
                 state = pstate_recording_samples;
@@ -100,15 +117,20 @@ void process_sample(processing_info_t * processing_info)
             // While motion is maintained, record samples until
             // enough to extract features from is obtained.
 
-            if (onset_detected(&processing_info->onset_info, sample))
+            if (onset_detected(processing_info->onset_info, sample_group.num_channels, &sample_group))
             {
-                sig.samples[count++] = sample;
+                insert_sample_group(
+                    &processing_info->signal_group,
+                    &sample_group,
+                    count++
+                );
 
                 if (count >= processing_info->speriod)
                 {
-                    sig.length = processing_info->speriod;
-
-                    extract_all_features(features, &sig);
+                    extract_all_features(
+                        features,
+                        &processing_info->signal_group
+                    );
                     transmit_features(features);
 
                     state = pstate_waiting_for_rest;
@@ -126,7 +148,7 @@ void process_sample(processing_info_t * processing_info)
             // After the gesture has been transmitted, wait
             // for motion rest before recognizing another.
 
-            if (!onset_detected(&processing_info->onset_info, sample))
+            if (!onset_detected(processing_info->onset_info, sample_group.num_channels, &sample_group))
             {
                 printf("Rest at %u\n", total_count);
                 state = pstate_waiting_for_onset;

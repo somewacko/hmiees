@@ -8,6 +8,8 @@
 
 #include "emg_onset.h"
 
+#include "emg_processing.h"
+
 #include <stdio.h>
 
 
@@ -31,8 +33,28 @@ onset_info_t init_onset_info()
 }
 
 
-bool onset_detected(onset_info_t * info, emg_sample_t sample)
-{
+bool onset_detected(
+    onset_info_t onset_infos[],
+    unsigned onset_infos_length,
+    emg_sample_group_t * sample_group
+){
+    bool onset = false;
+
+    for (int i = 0; i < onset_infos_length; i++)
+    {
+        onset = onset || onset_detected_in_channel(
+            &onset_infos[i], sample_group->channels[i]
+        );
+    }
+
+    return onset;
+}
+
+
+bool onset_detected_in_channel(
+    onset_info_t * info,
+    emg_sample_t sample
+){
     const int M  = 1000, // Number of "no motion" samples to set base variance.
               n  = 1,    // Number of above threshold samples out of m samples.
               m  = 12,   // Number of samples in window.

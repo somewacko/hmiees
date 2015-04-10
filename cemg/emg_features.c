@@ -12,7 +12,7 @@
 #include <stdlib.h>
 
 
-float extract_feature(emg_signal_t *sig, emg_feature_t feat, float param)
+float extract_feature(emg_signal_t * sig, emg_feature_t feat, float param)
 {
     switch (feat)
     {
@@ -32,7 +32,7 @@ float extract_feature(emg_signal_t *sig, emg_feature_t feat, float param)
 }
 
 
-float mean_absolute_value(emg_signal_t *sig)
+float mean_absolute_value(emg_signal_t * sig)
 {
     float mav = 0.f;
 
@@ -43,7 +43,7 @@ float mean_absolute_value(emg_signal_t *sig)
 }
 
 
-float variance(emg_signal_t *sig)
+float variance(emg_signal_t * sig)
 {
     float mean = 0.f, sq_mean = 0.f;
 
@@ -59,7 +59,7 @@ float variance(emg_signal_t *sig)
 }
 
 
-float wilson_amplitude(emg_signal_t *sig, float threshold)
+float wilson_amplitude(emg_signal_t * sig, float threshold)
 {
     unsigned count = 0;
 
@@ -71,7 +71,7 @@ float wilson_amplitude(emg_signal_t *sig, float threshold)
 }
 
 
-float waveform_length(emg_signal_t *sig)
+float waveform_length(emg_signal_t * sig)
 {
     float wl = 0;
 
@@ -82,7 +82,7 @@ float waveform_length(emg_signal_t *sig)
 }
 
 
-float zero_crossings(emg_signal_t *sig, float threshold)
+float zero_crossings(emg_signal_t * sig, float threshold)
 {
     unsigned count = 0;
 
