@@ -43,13 +43,14 @@ static const float filt_b[] = {
 
 emg_filter_buffer_t init_filter_buffer()
 {
+    unsigned n, i;
     emg_filter_buffer_t buffer = {
         .current_index = 0
     };
 
-    for (unsigned n = 0; n < MAX_EMG_CHANNELS; n++)
+    for (n = 0; n < MAX_EMG_CHANNELS; n++)
     {
-        for (unsigned i = 0; i < BUFFER_SIZE; i++)
+        for (i = 0; i < BUFFER_SIZE; i++)
         {
             buffer.input_buffer[n][i]  = 0;
             buffer.output_buffer[n][i] = 0;
@@ -66,10 +67,12 @@ void insert_sample_group_filt_buffer(
 ){
     // Determine the current index in the buffer and put in input buffer
 
-    unsigned buffer_index = buffer->current_index + 1 >= BUFFER_SIZE ?
+    unsigned buffer_index, i, z[BUFFER_SIZE], n;
+
+    buffer_index = buffer->current_index + 1 >= BUFFER_SIZE ?
         0 : buffer->current_index + 1;
 
-    for (unsigned i = 0; i < sample_group->num_channels; i++)
+    for (i = 0; i < sample_group->num_channels; i++)
         buffer->input_buffer[i][buffer_index] = sample_group->channels[i];
 
 
@@ -77,20 +80,20 @@ void insert_sample_group_filt_buffer(
     // (e.g. with current index = 1: z={1, 0, 7, 6..} so that z[n] is
     // the corresponding index for x*z^-n)
 
-    unsigned z[BUFFER_SIZE]; 
-    for (int i = 0; i < BUFFER_SIZE; i++)
+    for (i = 0; i < BUFFER_SIZE; i++)
         z[i] = (-i + BUFFER_SIZE + buffer_index) % BUFFER_SIZE;
 
 
     // Apply filter
 
-    for (unsigned n = 0; n < sample_group->num_channels; n++)
+    for (n = 0; n < sample_group->num_channels; n++)
     {
+        
         emg_sample_t filtered_sample = 0;
 
-        for (unsigned i = 0; i < filt_size; i++)
+        for (i = 0; i < filt_size; i++)
             filtered_sample += filt_b[i] * buffer->input_buffer [n][ z[i] ];
-        for (unsigned i = 1; i < filt_size; i++)
+        for (i = 1; i < filt_size; i++)
             filtered_sample -= filt_a[i] * buffer->output_buffer[n][ z[i] ];
 
         buffer->output_buffer[n][buffer_index] = filtered_sample;
@@ -107,11 +110,12 @@ void insert_sample_group_filt_buffer(
 emg_sample_group_t get_current_sample_group(
     emg_filter_buffer_t * buffer
 ){
+    unsigned i;
     emg_sample_group_t sample_group = init_emg_sample_group(
         buffer->num_channels
     );
 
-    for (unsigned i = 0; i < buffer->num_channels; i++)
+    for (i = 0; i < buffer->num_channels; i++)
         sample_group.channels[i] = buffer->output_buffer[i][buffer->current_index];
 
     return sample_group;

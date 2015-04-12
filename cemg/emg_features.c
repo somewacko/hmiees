@@ -35,8 +35,9 @@ float extract_feature(emg_signal_t * sig, emg_feature_t feat, float param)
 float mean_absolute_value(emg_signal_t * sig)
 {
     float mav = 0.f;
-
-    for (unsigned i = 0; i < sig->length; i++)
+    unsigned i;
+    
+    for (i = 0; i < sig->length; i++)
         mav += fabs(sig->samples[i]) / (float)sig->length;
 
     return mav;
@@ -46,8 +47,9 @@ float mean_absolute_value(emg_signal_t * sig)
 float variance(emg_signal_t * sig)
 {
     float mean = 0.f, sq_mean = 0.f;
+    unsigned i;
 
-    for (unsigned i = 0; i < sig->length; i++)
+    for (i = 0; i < sig->length; i++)
     {
         emg_sample_t s = sig->samples[i];
 
@@ -61,9 +63,9 @@ float variance(emg_signal_t * sig)
 
 float wilson_amplitude(emg_signal_t * sig, float threshold)
 {
-    unsigned count = 0;
+    unsigned count = 0, i;
 
-    for (unsigned i = 0; i < sig->length-1; i++)
+    for (i = 0; i < sig->length-1; i++)
         if ( fabs(sig->samples[i]-sig->samples[i+1]) >= threshold )
             count++;
 
@@ -74,8 +76,9 @@ float wilson_amplitude(emg_signal_t * sig, float threshold)
 float waveform_length(emg_signal_t * sig)
 {
     float wl = 0;
+    unsigned i;
 
-    for (unsigned i = 1; i < sig->length; i++)
+    for (i = 1; i < sig->length; i++)
         wl += fabs(sig->samples[i]-sig->samples[i-1]);
 
     return wl;
@@ -84,9 +87,9 @@ float waveform_length(emg_signal_t * sig)
 
 float zero_crossings(emg_signal_t * sig, float threshold)
 {
-    unsigned count = 0;
+    unsigned count = 0, i;
 
-    for (unsigned i = 0; i < sig->length-1; i++)
+    for (i = 0; i < sig->length-1; i++)
         if (fabs(sig->samples[i] - sig->samples[i+1]) >= threshold)
             if ((-sig->samples[i] * sig->samples[i+1]) > 0)
                 count++;

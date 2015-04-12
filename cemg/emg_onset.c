@@ -39,8 +39,8 @@ bool onset_detected(
     emg_sample_group_t * sample_group
 ){
     bool onset = false;
-
-    for (int i = 0; i < onset_infos_length; i++)
+    unsigned i;
+    for (i = 0; i < onset_infos_length; i++)
     {
         onset = onset || onset_detected_in_channel(
             &onset_infos[i], sample_group->channels[i]
