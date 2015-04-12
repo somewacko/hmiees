@@ -20,11 +20,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "cemg/constants.h"
-#include "cemg/emg_features.h"
-#include "cemg/emg_onset.h"
-#include "cemg/emg_processing.h"
-#include "cemg/emg_signal.h"
+#include "constants.h"
+#include "emg_features.h"
+#include "emg_onset.h"
+#include "emg_processing.h"
+#include "emg_signal.h"
 
 
 // ---- Message to display when used incorrectly

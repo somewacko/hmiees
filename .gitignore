@@ -1,6 +1,6 @@
 # Ignore emg-ctest executables
 
-emg-ctest
+emg-*
 *.o
 *.out
 
