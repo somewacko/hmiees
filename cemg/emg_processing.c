@@ -29,18 +29,19 @@ typedef enum processing_state_t
 
 processing_info_t init_processing_info(unsigned num_channels, unsigned speriod)
 {
+    unsigned i;
     processing_info_t processing_info = {
         .buffer       = init_filter_buffer(),
         .signal_group = init_emg_signal_group(num_channels),
         .speriod      = speriod
     };
 
-    for (unsigned i = 0; i < MAX_EMG_CHANNELS; i++)
+    for (i = 0; i < MAX_EMG_CHANNELS; i++)
         processing_info.onset_info[i] = init_onset_info();
 
     processing_info.signal_group.length = speriod;
 
-    for (unsigned i = 0; i < MAX_EMG_CHANNELS; i++)
+    for (i = 0; i < MAX_EMG_CHANNELS; i++)
         processing_info.signal_group.channels[i].length = speriod;
 
     return processing_info;
@@ -57,30 +58,36 @@ void read_in_sample_group(
 
 // ---- Main processing methods
 
-void extract_all_features(float features[], emg_signal_group_t * signal_group)
+void extract_all_features(double features[], emg_signal_group_t * signal_group)
 {
+    unsigned n;
+    emg_feature_t f;
     // Extract features using 0.005 as a default parameter for now..
-    for (unsigned n = 0; n < signal_group->num_channels; n++)
-        for (emg_feature_t f = 0; f < emg_feature_count; f++)
-            features[f] = extract_feature(&signal_group->channels[n], f, .005);
+    for (n = 0; n < signal_group->num_channels; n++)
+        for (f = 0; f < emg_feature_count; f++)
+            features[f+n*emg_feature_count] = extract_feature(&signal_group->channels[n], f, .005);
 }
 
 
-void transmit_features(float features[])
+void transmit_features(double features[], emg_signal_group_t * signal_group)
 {
+    emg_feature_t f;
+    unsigned n;
     // { Actual transmittion yet to be implemented... }
 
     printf("\nExtracted features:\n");
-    for (emg_feature_t f = 0; f < emg_feature_count; f++)
-        printf("\t%s - %5.2f\n", feature_name(f), features[f]);
-    printf("\n");
+    for (n = 0; n < signal_group->num_channels; n++){
+        for (f = 0; f < emg_feature_count; f++)
+            printf("\t%s - %5.2f\n", feature_name(f), features[f+n*emg_feature_count]);
+        printf("\n");
+    }
 }
 
 
 void process_sample(processing_info_t * processing_info)
 {
     static processing_state_t state;
-    static float features[emg_feature_count * MAX_EMG_CHANNELS];
+    static double features[emg_feature_count * MAX_EMG_CHANNELS];
     static unsigned count;
     static unsigned total_count;
 
@@ -131,7 +138,7 @@ void process_sample(processing_info_t * processing_info)
                         features,
                         &processing_info->signal_group
                     );
-                    transmit_features(features);
+                    transmit_features(features, &processing_info->signal_group);
 
                     state = pstate_waiting_for_rest;
                 }

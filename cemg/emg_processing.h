@@ -9,6 +9,7 @@
 
 #ifndef _EMG_PROCESSING_H
 #define _EMG_PROCESSING_H
+#define MAX_SIGNAL_NUMBER 4
 
 #include "constants.h"
 #include "emg_filter.h"
