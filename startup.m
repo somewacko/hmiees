@@ -1,9 +1,9 @@
 % Add folders to search path.
 
-addpath( strcat(pwd, '/classifier') );
-addpath( strcat(pwd, '/data'      ) );
-addpath( strcat(pwd, '/func'      ) );
-addpath( strcat(pwd, '/gui'       ) );
-addpath( strcat(pwd, '/scripts'   ) );
+addpath( strcat(pwd, '/matlab/classifier') );
+addpath( strcat(pwd, '/matlab/data'      ) );
+addpath( strcat(pwd, '/matlab/func'      ) );
+addpath( strcat(pwd, '/matlab/gui'       ) );
+addpath( strcat(pwd, '/matlab/scripts'   ) );
 
 disp('emg-classifier folders added to search path.');
