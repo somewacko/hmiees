@@ -37,22 +37,30 @@ int main (void){
 
         //AD1PCFGL = 0XFFFE;
         //AD1PCFGH = 0XFFFE;
-        ADPCFG = 0XFFFE;
-	
+        AD1CON1 = 0XDBFF;
+        AD1CON2 = 0XFFFC;
+        AD1CON3 = 0x8100;
+        AD1CON4 = 0x0004;
+        AD1CHS123 = 0x0404
+        ADPCFG = 0XFFFE;    //sets R/W-0 pin to be analog, all others digital
+        unsigned test = 0;
 
 	while(1)
-    {
-        printf("ABCDEFGHIJK\n");
-//        for(i=0;i<=2000;i++)
-//        {}
-//        test=test+1;
-//        if (test >= 3000)
-//        {
-//            test = 0;
-//        }
-//
-//	}
+       {
+        for(unsigned i=0;i<=2000;i++)
+        {}
+        test=test+1;
+        if (test == 1500)
+        {
+            printf("abc\n");
         }
+        if (test >= 3000)
+        {
+            test = 0;
+            printf("ABCDEFGHIJK\n");
+        }
+
+	}
 }
 			
 
