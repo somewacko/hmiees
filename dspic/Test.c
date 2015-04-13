@@ -41,13 +41,15 @@ int main (void){
         AD1CON2 = 0XFFFC;
         AD1CON3 = 0x8100;
         AD1CON4 = 0x0004;
-        AD1CHS123 = 0x0404
+        AD1CHS123 = 0x0404;
         ADPCFG = 0XFFFE;    //sets R/W-0 pin to be analog, all others digital
-        unsigned test = 0;
+
+
+        unsigned test = 0, i; //adcon1234 need ch
 
 	while(1)
        {
-        for(unsigned i=0;i<=2000;i++)
+        for(i=0;i<=2000;i++)
         {}
         test=test+1;
         if (test == 1500)
