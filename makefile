@@ -5,5 +5,5 @@ cemg-test:
 	-o emg-analysis
 
 	clang --std=c99 -Icclass/ ctest/emg_classifier_test.c \
-		cclass/emg_matrix.c cclass/emg_classifier.c cclass/emg_gesture.c \
+		cclass/emg_matrix.c cclass/emg_gesture.c \
 	-o emg-classifier

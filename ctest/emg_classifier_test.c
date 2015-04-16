@@ -1,25 +1,65 @@
-#include <stdio.h>
+//  -------- -------- -------- -------- -------- -------- -------- --------  //
+//  emg_classifier_test.h
+//  flynn, michael
+//
+//  program to test classifier with randomly generated sets.
+//
+//  -------- -------- -------- -------- -------- -------- -------- --------  //
 
-#include "emg_classifier.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#include "classifier_constants.h"
+#include "emg_gesture.h"
 #include "emg_matrix.h"
+
+
+float rand_float() // Returns a float between 0 and 1
+{
+    return rand() / (float)RAND_MAX; 
+}
+
+
+void print_matlab(fmatrix_t * a)
+{
+    // Prints the array to easily be copy/pasted into matlab
+
+    printf("\n[");
+    for (int i = 0; i < a->rows; i++)
+    {
+        for (int j = 0; j < a->cols; j++)
+        {
+            printf("%f", a->values[i][j]);
+            if (j != a->cols-1)
+                printf(",");
+        }
+        if (i != a->rows-1)
+            printf(";");
+    }
+    printf("]\n\n");
+}
+
 
 int main(void)
 {
-    fmatrix_t s = init_fmatrix(4, 2);
-    s.values[0][0] =  0.75; s.values[0][1] =  2.00;
-    s.values[1][0] =  1.00; s.values[1][1] =  2.25;
-    s.values[2][0] =  1.25; s.values[2][1] =  2.12;
-    s.values[3][0] =  1.05; s.values[3][1] =  1.88;
+    srand(time(NULL));
 
-    fmatrix_t t = init_fmatrix(1, 2);
-    t.values[0][0] =  0.88; t.values[0][1] =  2.10;
+    fmatrix_t a = init_fmatrix(10, 5);
 
-    print_matrix(&t);
-    print_matrix(&s);
+    for (int i = 0; i < a.rows; i++)
+        for (int j = 0; j < a.cols; j++)
+            a.values[i][j] = rand_float();
 
-    float d = mahal_distance(&t, &s); // Should be 0.5612
+    printf("a:\n");
+    print_matrix(&a);
+    print_matlab(&a);
 
-    printf("\nMahal Distance: %0.4f\n\n", d);
+    fmatrix_t c = covariance_matrix(&a);
+    c = inverted_matrix(&c);
+
+    printf("inv(cov(a)):\n");
+    print_matrix(&c);
 
     return 0;
 }

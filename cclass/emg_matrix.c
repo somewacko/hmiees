@@ -28,6 +28,17 @@ void clear_matrix(fmatrix_t * a)
 }
 
 
+void copy_matrix(fmatrix_t * dest, fmatrix_t * a)
+{
+    dest->rows = a->rows;
+    dest->cols = a->cols;
+
+    for (unsigned i = 0; i < a->rows; i++)
+        for (unsigned j = 0; j < a->cols; j++)
+            dest->values[i][j] = a->values[i][j];
+}
+
+
 fmatrix_t add_matricies(fmatrix_t * a, fmatrix_t * b)
 {
     fmatrix_t result;
@@ -151,72 +162,6 @@ fmatrix_t transposed_matrix(fmatrix_t * a)
 }
 
 
-fmatrix_t cofactor_matrix(fmatrix_t * a)
-{
-    fmatrix_t result;
-
-    if (a->rows == a->cols)
-    {
-        result.rows = a->rows;
-        result.cols = a->cols;
-
-        for (unsigned i = 0; i < a->rows; i++)
-        {
-            for (unsigned j = 0; j < a->cols; j++)
-            {
-                result.values[i][j] = first_minor(a, i, j);
-
-                if ((i+j) % 2 == 1)
-                    result.values[i][j] *= -1;
-            }
-        }
-    }
-    else
-    {
-        result.rows = 0;
-        result.cols = 0;
-    }
-
-    return result;
-}
-
-
-fmatrix_t adjoint_matrix(fmatrix_t * a)
-{
-    fmatrix_t cof = cofactor_matrix(a);
-    fmatrix_t result = transposed_matrix(&cof);
-
-    return result;
-}
-
-
-fmatrix_t inverted_matrix(fmatrix_t * a)
-{
-    fmatrix_t result;
-
-    float det = determinant(a);
-
-    if (det != 0.f)
-    {
-        fmatrix_t adj = adjoint_matrix(a);
-
-        result.rows = adj.rows;
-        result.cols = adj.cols;
-
-        for (unsigned i = 0; i < result.rows; i++)
-            for (unsigned j = 0; j < result.cols; j++)
-                result.values[i][j] = adj.values[i][j] / det;
-    }
-    else
-    {
-        result.rows = 0;
-        result.cols = 0;
-    }
-
-    return result;
-}
-
-
 fmatrix_t covariance_matrix(fmatrix_t * a)
 {
     fmatrix_t result;
@@ -256,83 +201,221 @@ fmatrix_t covariance_matrix(fmatrix_t * a)
 }
 
 
-float determ(float a[MAX_MATRIX_ROWS][MAX_MATRIX_ROWS], unsigned n)
+fmatrix_t inverted_matrix(fmatrix_t * a)
 {
-    // This function is from stack overflow. Not great, but I don't want to
-    // spend a lot of time on this..
+    // Inverts a matrix using LU-decomposition.
 
-    float det = 0;
-    int p, h, k, i, j;
-    float temp[MAX_MATRIX_ROWS][MAX_MATRIX_ROWS];
+    fmatrix_t result;
 
-    if (n == 1)
+    if (a->rows == a->cols)
     {
-        return a[0][0];
-    }
-    else if (n == 2)
-    {
-        return (a[0][0]*a[1][1] - a[0][1]*a[1][0]);
+        unsigned n = a->rows;
+
+        result.rows = result.cols = a->rows;
+
+        // Do LU-decomposition (A = LU)
+
+        fmatrix_t L = init_fmatrix(n, n);
+        fmatrix_t U = init_fmatrix(n, n);
+        fmatrix_t P = init_fmatrix(n, n);
+
+        LU_decomposition(a, &L, &U, &P);
+
+        // Solve the system A * A^-1 = I using forward and back-substitution.
+
+        // Much help from: http://www.mathworks.com/matlabcentral/fileexchange/
+        //                     37459-matrix-inverse-using-lu-factorization
+
+        fmatrix_t I = init_fmatrix(n, 1); // Identity
+
+        for (int col = 0; col < n; col++)
+        {
+            for (int i = 0; i < n; i++)
+                I.values[i][0] = (i == col);
+
+            fmatrix_t b = multiply_matricies(&P, &I);
+
+
+            fmatrix_t f_sub = init_fmatrix(n, 1);
+
+            f_sub.values[0][0] = b.values[0][0] / L.values[0][0];
+
+            for (int i = 1; i < n; i++)
+            {
+                float sum = 0;
+                for (int j = 0; j < i; j++)
+                    sum += L.values[i][j] * f_sub.values[j][0];
+                f_sub.values[i][0] = (b.values[i][0] - sum) / L.values[i][i];
+            }
+
+
+            fmatrix_t b_sub = init_fmatrix(n, 1);
+
+            b_sub.values[n-1][0] = f_sub.values[n-1][0] / U.values[n-1][n-1];
+
+            for (int i = n-1; i >= 0; i--)
+            {
+                float sum = 0;
+                for (int j = n-1; j > i; j--)
+                    sum += U.values[i][j] * b_sub.values[j][0];
+                b_sub.values[i][0] = (f_sub.values[i][0]-sum) / U.values[i][i];
+            }
+
+
+            for (int i = 0; i < n; i++)
+                result.values[i][col] = b_sub.values[i][0];
+        }
     }
     else
-    {
-        for (p = 0; p < n; p++)
-        {
-            h = 0;
-            k = 0;
-            for (i = 1; i < n; i++)
-            {
-                for (j = 0; j < n; j++)
-                {
-                    if (j == p)
-                        continue;
+        result.rows = result.cols = 0;
 
-                    temp[h][k] = a[i][j];
-                    k++;
-
-                    if (k == n-1)
-                    {
-                        h++;
-                        k = 0;
-                    }
-                }
-            }
-            det += a[0][p] * pow(-1, p) * determ(temp, n-1);
-        }
-        return det;
-    }
-
-    return 0;
+    return result;
 }
 
 
 float determinant(fmatrix_t * a)
 {
     if (a->rows == a->cols)
-        return determ(a->values, a->rows);
+    {
+        unsigned n = a->rows;
+
+        if (n == 1)
+        {
+            return a->values[0][0];
+        }
+        else if (n == 2)
+        {
+            return a->values[0][0]*a->values[1][1]
+                - a->values[0][1]*a->values[1][0];
+        }
+        else
+        {
+            // Do LU Decomposition - the product of the diagonals is
+            // the determinant
+
+            fmatrix_t L = init_fmatrix(n, n);
+            fmatrix_t U = init_fmatrix(n, n);
+            fmatrix_t P = init_fmatrix(n, n);
+
+            unsigned S = LU_decomposition(a, &L, &U, &P);
+
+            float det = pow(-1, S);
+
+            for (unsigned i = 0; i < n; i++)
+                det *= L.values[i][i] * U.values[i][i];
+
+            return det;
+        }
+    }
     else
         return 0;
 }
 
 
-float first_minor(fmatrix_t * a, unsigned ii, unsigned jj)
-{
-    fmatrix_t result;
-    result.rows = a->rows-1;
-    result.cols = a->cols-1;
+// ---- LU-Decomposition functions
 
-    for (unsigned i = 0; i < a->rows; i++)
+unsigned LU_pivot(fmatrix_t * a, fmatrix_t * p)
+{
+    // Pivot function for LU-decomposition
+
+    // Adapted from: http://rosettacode.org/wiki/LU_decomposition#C
+
+    unsigned num_swaps = 0;
+    unsigned n = a->rows;
+
+    for (unsigned i = 0; i < n; i++)
+        for (unsigned j = 0; j < n; j++)
+            p->values[i][j] = (i == j);
+
+    for (unsigned i = 0; i < n; i++)
     {
-        for (unsigned j = 0; j < a->cols; j++)
+        int max_j = i;
+        for (unsigned j = i; j < n; j++)
+            if (fabs(a->values[j][i]) > fabs(a->values[max_j][i]))
+                max_j = j;
+        if (max_j != i)
         {
-            if (i == ii || j == jj)
-                continue;
-            result.values[i-(i>ii?1:0)][j-(j>jj?1:0)] = a->values[i][j];
+            for (unsigned k = 0; k < n; k++)
+            {
+                float temp = p->values[i][k];
+                p->values[i][k] = p->values[max_j][k];
+                p->values[max_j][k] = temp;
+            }
+            num_swaps++;
         }
     }
 
-    return determinant(&result);
+    return num_swaps;
 }
 
+
+unsigned LU_decomposition(
+    fmatrix_t * A,
+    fmatrix_t * L,
+    fmatrix_t * U,
+    fmatrix_t * P
+){
+    // Decomposes a matrix into upper and lower triangular matricies
+    // such that A=LU. Returns the number of swaps from pivot function
+    // (which can be used to compute the determinant of A)
+
+    // Adapted from: http://rosettacode.org/wiki/LU_decomposition#C
+
+    if (A->rows == A->cols)
+    {
+        const unsigned n = A->rows;
+
+        L->rows = U->rows = P->rows = n;
+        L->cols = U->cols = P->cols = n;
+
+        clear_matrix(L);
+        clear_matrix(U);
+        clear_matrix(P);
+
+        unsigned num_swaps = LU_pivot(A, P);
+
+        fmatrix_t a_prime = multiply_matricies(P, A);
+
+        for (unsigned i = 0; i < n; i++)
+            L->values[i][i] = 1;
+
+        for (unsigned i = 0; i < n; i++)
+        {
+            for (unsigned j = 0; j < n; j++)
+            {
+                if (j <= i)
+                {
+                    float sum = 0;
+
+                    for (unsigned k = 0; k < j; k++)
+                        sum += L->values[j][k] * U->values[k][i];
+
+                    U->values[j][i] = a_prime.values[j][i] - sum;
+                }
+                if (j >= i)
+                {
+                    float sum = 0;
+
+                    for (unsigned k = 0; k < i; k++)
+                        sum += L->values[j][k]*U->values[k][i];
+
+                    L->values[j][i]  = a_prime.values[j][i] - sum;
+                    L->values[j][i] /= U->values[i][i];
+
+                    if (U->values[i][i] == 0.f)
+                        printf("U[%d][%d] == 0 (!)\n", i, i);
+                }
+            }
+        }
+
+        return num_swaps;
+    }
+    else
+        return 0;
+}
+
+
+// ---- Utility print function
 
 void print_matrix(fmatrix_t * a)
 {
