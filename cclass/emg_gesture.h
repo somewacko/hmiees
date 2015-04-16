@@ -1,5 +1,5 @@
 //  -------- -------- -------- -------- -------- -------- -------- --------  //
-//  emg_gesture.c
+//  emg_gesture.h
 //  flynn, michael
 //
 //  structs to hold information for different gesture classes and be able
@@ -46,11 +46,11 @@ emg_gesture_t init_emg_gesture(char name[], unsigned num_features);
 
 // ---- Small object that holds results of classification
 
-typedef struct emg_classification_info_t
+typedef struct classification_info_t
 {
     emg_gesture_t * identified_gesture;
     float distance;
-} emg_classification_info_t;
+} classification_info_t;
 
 
 // ---- Training methods
@@ -72,9 +72,9 @@ float mahal_distance(
 );
 
 // Perform classification, returns the recognized gesture or NULL if none.
-emg_classification_info_t classify(
+classification_info_t classify(
     fmatrix_t * features,
-    emg_gesture_t gestures[],
+    emg_gesture_t * gestures[],
     const unsigned num_gestures,
     float threshold
 );

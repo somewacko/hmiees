@@ -97,36 +97,47 @@ float mahal_distance(
 }
 
 
-emg_classification_info_t classify(
+classification_info_t classify(
     fmatrix_t * features,
-    emg_gesture_t gestures[],
+    emg_gesture_t * gestures[],
     const unsigned num_gestures,
     float threshold
 ){
-    emg_classification_info_t classification = {
+    // Classify a vector of features by calculating the Mahal distance for
+    // each gesture and choosing the gesture with the shortest distance.
+
+    // If no gesture has a distance below the given threshold,
+    // emg_classification_info_t.identified_gesture will be NULL
+
+    classification_info_t info = {
         .identified_gesture = NULL,
         .distance = FLT_MAX
     };
 
     for (unsigned i = 0; i < num_gestures; i++)
     {
+        emg_gesture_t * gesture = gestures[i];
+
         // Commit training if not done already
-        if (!gestures[i].is_committed)
-            commit_training(&gestures[i]);
+        if (!gestures[i]->is_committed)
+            commit_training(gestures[i]);
 
         float d = mahal_distance(
             features,
-            &gestures[i].inv_covariance,
-            &gestures[i].mean_obs
+            &gestures[i]->inv_covariance,
+            &gestures[i]->mean_obs
         );
 
-        if (d < threshold && d < classification.distance)
+        if (d < threshold && d < info.distance)
         {
-            classification.identified_gesture = &gestures[i];
-            classification.distance = d;
+            info.identified_gesture = gestures[i];
+            info.distance = d;
         }
     }
 
-    return classification;
+    if (!info.identified_gesture)
+        info.distance = 0;
+
+    return info;
 }
 

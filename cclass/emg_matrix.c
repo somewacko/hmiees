@@ -403,7 +403,7 @@ unsigned LU_decomposition(
                     L->values[j][i] /= U->values[i][i];
 
                     if (U->values[i][i] == 0.f)
-                        printf("U[%d][%d] == 0 (!)\n", i, i);
+                        {}//printf("Warning: U[%d][%d] == 0 (!)\n", i, i);
                 }
             }
         }

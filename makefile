@@ -1,3 +1,4 @@
+# Simple makefile to compile tests. Recompiles every time.
 cemg-test:
 
 	clang --std=c99 -Icemg/ ctest/emg_analysis_test.c \

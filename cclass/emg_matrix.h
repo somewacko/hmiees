@@ -9,8 +9,8 @@
 #ifndef _EMG_MATRIX_H
 #define _EMG_MATRIX_H
 
-#define MAX_MATRIX_ROWS 64
-#define MAX_MATRIX_COLS 16
+#define MAX_MATRIX_ROWS 128
+#define MAX_MATRIX_COLS 32
 
 
 // ---- Struct to represent matricies
@@ -18,7 +18,7 @@
 typedef struct fmatrix_t {
 
     // The values in this matrix
-    float values[MAX_MATRIX_COLS][MAX_MATRIX_ROWS];
+    float values[MAX_MATRIX_ROWS][MAX_MATRIX_COLS];
 
     // Number of rows and columns for this matrix
     unsigned rows, cols;
