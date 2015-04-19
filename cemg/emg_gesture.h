@@ -10,7 +10,9 @@
 #ifndef _EMG_GESTURE_H
 #define _EMG_GESTURE_H
 
-#include "classifier_constants.h"
+#include <stdbool.h>
+
+#include "constants.h"
 #include "emg_matrix.h"
 
 

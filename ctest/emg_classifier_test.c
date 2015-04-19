@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "classifier_constants.h"
+#include "constants.h"
 #include "emg_gesture.h"
 #include "emg_matrix.h"
 

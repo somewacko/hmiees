@@ -9,6 +9,8 @@
 #ifndef _EMG_ONSET_H
 #define _EMG_ONSET_H
 
+#include <stdbool.h>
+
 #include "emg_signal.h"
 #include "constants.h"
 

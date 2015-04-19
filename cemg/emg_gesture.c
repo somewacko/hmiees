@@ -38,7 +38,8 @@ void train_gesture(
     emg_gesture_t * gesture,
     fmatrix_t * features
 ){
-    if (features->rows == 1) // Enforce features as a row vector
+    // Enforce features as a row vector and ensure that there is room for it
+    if (features->rows == 1 && gesture->observations.cols < MAX_MATRIX_ROWS)
     {
         gesture->is_committed = false;
 
@@ -116,7 +117,9 @@ classification_info_t classify(
 
     for (unsigned i = 0; i < num_gestures; i++)
     {
-        emg_gesture_t * gesture = gestures[i];
+        // Ignore gestures which don't have enough training to classify.
+        if (gestures[i]->observations.rows < gestures[i]->observations.cols)
+            continue;
 
         // Commit training if not done already
         if (!gestures[i]->is_committed)
