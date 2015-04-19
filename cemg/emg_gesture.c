@@ -57,12 +57,14 @@ void train_gesture(
 void commit_training(
     emg_gesture_t * gesture
 ){
+    fmatrix_t boxcox = boxcox_transform(&gesture->observations, BOXCOX_LAMBDA);
+
     // Calculate inverse covariance
-    fmatrix_t cov = covariance_matrix(&gesture->observations);
+    fmatrix_t cov = covariance_matrix(&boxcox);
     gesture->inv_covariance = inverted_matrix(&cov);
 
     // Calculate averages in observations
-    gesture->mean_obs = average_columns_matrix(&gesture->observations);
+    gesture->mean_obs = average_columns_matrix(&boxcox);
 
     gesture->is_committed = true;
 }
@@ -110,6 +112,8 @@ classification_info_t classify(
     // If no gesture has a distance below the given threshold,
     // emg_classification_info_t.identified_gesture will be NULL
 
+    fmatrix_t bcfeats = boxcox_transform(features, BOXCOX_LAMBDA);
+
     classification_info_t info = {
         .identified_gesture = NULL,
         .distance = FLT_MAX
@@ -126,7 +130,7 @@ classification_info_t classify(
             commit_training(gestures[i]);
 
         float d = mahal_distance(
-            features,
+            &bcfeats,
             &gestures[i]->inv_covariance,
             &gestures[i]->mean_obs
         );

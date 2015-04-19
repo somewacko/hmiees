@@ -273,6 +273,28 @@ fmatrix_t inverted_matrix(fmatrix_t * a)
 }
 
 
+fmatrix_t boxcox_transform(fmatrix_t * a, float lambda)
+{
+    fmatrix_t result = init_fmatrix(a->rows, a->cols);
+
+    if (lambda == 0.f)
+    {
+        for (int i = 0; i < a->rows; i++)
+            for (int j = 0; j < a->cols; j++)
+                result.values[i][j] = log(a->values[i][j]);
+    }
+    else
+    {
+        for (int i = 0; i < a->rows; i++)
+            for (int j = 0; j < a->cols; j++)
+                result.values[i][j] = (pow(a->values[i][j], lambda)-1)/lambda;
+    }
+    
+
+    return result;
+}
+
+
 float determinant(fmatrix_t * a)
 {
     if (a->rows == a->cols)

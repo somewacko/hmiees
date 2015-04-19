@@ -43,6 +43,7 @@ fmatrix_t average_rows_matrix(fmatrix_t * a);
 fmatrix_t transposed_matrix(fmatrix_t * a);
 fmatrix_t covariance_matrix(fmatrix_t * a);
 fmatrix_t inverted_matrix(fmatrix_t * a);
+fmatrix_t boxcox_transform(fmatrix_t * a, float lambda);
 
 float determinant(fmatrix_t * a);
 
