@@ -105,10 +105,8 @@ int main(int argc, char *argv[])
 {
     emg_params_t params = parse_args(argc, argv);
 
-
-    processing_info_t processing_info = init_processing_info(
-        1, params.speriod
-    );
+    processing_info_t processing_info;
+    init_processing_info(&processing_info, 1, params.speriod);
 
 
     FILE *file = fopen(params.filename, "r");
@@ -122,7 +120,8 @@ int main(int argc, char *argv[])
 
     printf("\nReading in signal from %s...\n\n", params.filename);
 
-    emg_sample_group_t sample_group = init_emg_sample_group(1);
+    emg_sample_group_t sample_group; 
+    init_emg_sample_group(&sample_group, 1);
 
     while (!feof(file))
     {

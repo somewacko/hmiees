@@ -41,7 +41,8 @@ typedef struct processing_info_t
 
 // ---- Initializes processing_info_t struct
 
-processing_info_t init_processing_info(
+void init_processing_info(
+    processing_info_t * processing_info,
     unsigned num_channels,
     unsigned speriod
 );
