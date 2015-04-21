@@ -6,6 +6,8 @@
 //
 //  -------- -------- -------- -------- -------- -------- -------- --------  //
 
+#ifndef _EMG_FILTER_H
+#define _EMG_FILTER_H
 
 #include "constants.h"
 #include "emg_signal.h"
@@ -51,3 +53,5 @@ emg_sample_group_t get_current_sample_group(
     emg_filter_buffer_t * buffer
 );
 
+
+#endif

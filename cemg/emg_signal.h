@@ -10,7 +10,7 @@
 #define _EMG_SIGNAL_H
 
 
-#define MAX_EMG_SIGNAL_LENGTH 1000
+#define MAX_EMG_SIGNAL_LENGTH 150
 #define MAX_EMG_CHANNELS      3
 
 
