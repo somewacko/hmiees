@@ -13,23 +13,19 @@
 #include <stdio.h>
 
 
-onset_info_t init_onset_info()
+void init_onset_info(onset_info_t * onset_info)
 {
-    onset_info_t onset_info = {
-        .base_var_count  = 0,
-        .is_active       = false,
-        .base_variance   = 0,
-        .base_mean       = 0,
-        .base_sq_mean    = 0,
-        .prev_sample     = 0,
+    onset_info->base_var_count  = 0;
+    onset_info->is_active       = false;
+    onset_info->base_variance   = 0;
+    onset_info->base_mean       = 0;
+    onset_info->base_sq_mean    = 0;
+    onset_info->prev_sample     = 0;
 
-        .n_of_m          = 0,
-        .active_count    = 0,
-        .off_count       = 0,
-        .is_even         = false
-    };
-
-    return onset_info;
+    onset_info->n_of_m          = 0;
+    onset_info->active_count    = 0;
+    onset_info->off_count       = 0;
+    onset_info->is_even         = false;
 }
 
 

@@ -27,24 +27,25 @@ typedef enum processing_state_t
 
 // ---- processing_info_t methods
 
-processing_info_t init_processing_info(unsigned num_channels, unsigned speriod)
-{
+void init_processing_info(
+    processing_info_t *processing_info,
+    unsigned num_channels,
+    unsigned speriod
+){
     unsigned i;
-    processing_info_t processing_info = {
-        .buffer       = init_filter_buffer(),
-        .signal_group = init_emg_signal_group(num_channels),
-        .speriod      = speriod
-    };
+
+    processing_info->speriod = speriod;
+
+    init_filter_buffer(&processing_info->buffer);
+    init_emg_signal_group(&processing_info->signal_group, num_channels);
 
     for (i = 0; i < MAX_EMG_CHANNELS; i++)
-        processing_info.onset_info[i] = init_onset_info();
+        init_onset_info(&processing_info->onset_info[i]);
 
-    processing_info.signal_group.length = speriod;
+    processing_info->signal_group.length = speriod;
 
     for (i = 0; i < MAX_EMG_CHANNELS; i++)
-        processing_info.signal_group.channels[i].length = speriod;
-
-    return processing_info;
+        processing_info->signal_group.channels[i].length = speriod;
 }
 
 

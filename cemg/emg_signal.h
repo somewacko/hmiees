@@ -33,7 +33,7 @@ typedef struct emg_signal_t
 
 } emg_signal_t;
 
-emg_signal_t init_emg_signal();
+void init_emg_signal(emg_signal_t * sig);
 
 
 // ---- Struct types to represent a group of emg signals
@@ -49,7 +49,10 @@ typedef struct emg_sample_group_t
 
 } emg_sample_group_t;
 
-emg_sample_group_t init_emg_sample_group(unsigned num_channels);
+void init_emg_sample_group(
+    emg_sample_group_t * sample_group,
+    unsigned num_channels
+);
 
 
 typedef struct emg_signal_group_t
@@ -65,7 +68,10 @@ typedef struct emg_signal_group_t
 
 } emg_signal_group_t;
 
-emg_signal_group_t init_emg_signal_group(unsigned num_channels);
+void init_emg_signal_group(
+    emg_signal_group_t * signal_group,
+    unsigned num_channels
+);
 
 void insert_sample_group(
     emg_signal_group_t * signal_group,

@@ -36,7 +36,7 @@ typedef struct emg_filter_buffer_t {
 
 // ---- Initializes emg_filter_buffer_t struct.
 
-emg_filter_buffer_t init_filter_buffer();
+void init_filter_buffer(emg_filter_buffer_t * filter_buffer);
 
 
 // ---- Inserts a sample into the buffer and filters it.

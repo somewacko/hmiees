@@ -36,7 +36,7 @@ typedef struct onset_info_t {
 } onset_info_t;
 
 
-onset_info_t init_onset_info();
+void init_onset_info(onset_info_t * onset_info);
 
 bool onset_detected(
     onset_info_t onset_infos[],

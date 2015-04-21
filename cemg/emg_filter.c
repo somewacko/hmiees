@@ -41,23 +41,19 @@ static const float filt_b[] = {
 
 // ---- Methods
 
-emg_filter_buffer_t init_filter_buffer()
+void init_filter_buffer(emg_filter_buffer_t * buffer)
 {
     unsigned n, i;
-    emg_filter_buffer_t buffer = {
-        .current_index = 0
-    };
+    buffer->current_index = 0;
 
     for (n = 0; n < MAX_EMG_CHANNELS; n++)
     {
         for (i = 0; i < BUFFER_SIZE; i++)
         {
-            buffer.input_buffer[n][i]  = 0;
-            buffer.output_buffer[n][i] = 0;
+            buffer->input_buffer[n][i]  = 0;
+            buffer->output_buffer[n][i] = 0;
         }
     }
-
-    return buffer;
 }
 
 
@@ -111,9 +107,8 @@ emg_sample_group_t get_current_sample_group(
     emg_filter_buffer_t * buffer
 ){
     unsigned i;
-    emg_sample_group_t sample_group = init_emg_sample_group(
-        buffer->num_channels
-    );
+    emg_sample_group_t sample_group; 
+    init_emg_sample_group(&sample_group, buffer->num_channels);
 
     for (i = 0; i < buffer->num_channels; i++)
         sample_group.channels[i] = buffer->output_buffer[i][buffer->current_index];

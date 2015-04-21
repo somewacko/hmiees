@@ -9,44 +9,39 @@
 #include "emg_signal.h"
 
 
-emg_signal_t init_emg_signal()
+void init_emg_signal(emg_signal_t * sig)
 {
     unsigned i;
-    emg_signal_t sig;
-    sig.length = 0;
+    sig->length = 0;
 
     for (i = 0; i < MAX_EMG_SIGNAL_LENGTH; i++)
-        sig.samples[i] = 0;
-
-    return sig;
+        sig->samples[i] = 0;
 }
 
 
-emg_sample_group_t init_emg_sample_group(unsigned num_channels)
-{
+void init_emg_sample_group(
+    emg_sample_group_t * sample_group,
+    unsigned num_channels
+){
     unsigned i;
-    emg_sample_group_t sample_group;
 
-    sample_group.num_channels = num_channels > MAX_EMG_CHANNELS ? MAX_EMG_CHANNELS : num_channels;
+    sample_group->num_channels = num_channels > MAX_EMG_CHANNELS ? MAX_EMG_CHANNELS : num_channels;
 
     for (i = 0; i < MAX_EMG_CHANNELS; i++)
-        sample_group.channels[i] = 0;
-
-    return sample_group;
+        sample_group->channels[i] = 0;
 }
 
 
-emg_signal_group_t init_emg_signal_group(unsigned num_channels)
-{
+void init_emg_signal_group(
+    emg_signal_group_t * signal_group,
+    unsigned num_channels
+){
     unsigned i;
-    emg_signal_group_t signal_group;
 
-    signal_group.num_channels = num_channels > MAX_EMG_CHANNELS ? MAX_EMG_CHANNELS : num_channels;
+    signal_group->num_channels = num_channels > MAX_EMG_CHANNELS ? MAX_EMG_CHANNELS : num_channels;
 
     for (i = 0; i < MAX_EMG_CHANNELS; i++)
-        signal_group.channels[i] = init_emg_signal();
-
-    return signal_group;
+        init_emg_signal(&signal_group->channels[i]);
 }
 
 
