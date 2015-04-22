@@ -25,7 +25,7 @@ activeflag = zeros(1, size(signals, 2));
 
 onset_array = zeros(size(signals, 1), 1);
 
-for i = 3:size(signals, 1) % for each 'ith' sample
+for i = M:size(signals, 1) % for each 'ith' sample
     for s = 1:size(signals, 2) % in channel 's'
         
         if mod(i,2) ~= 0 % Only take in odd samples

@@ -12,7 +12,7 @@
 #include <stdlib.h>
 
 
-float extract_feature(emg_signal_t * sig, emg_feature_t feat, float param)
+float extract_feature(emg_signal_t sig, emg_feature_t feat, float param)
 {
     switch (feat)
     {
@@ -32,66 +32,65 @@ float extract_feature(emg_signal_t * sig, emg_feature_t feat, float param)
 }
 
 
-float mean_absolute_value(emg_signal_t * sig)
+float mean_absolute_value(emg_signal_t sig)
 {
     float mav = 0.f;
-    unsigned i;
     
-    for (i = 0; i < sig->length; i++)
-        mav += fabs(sig->samples[i]) / (float)sig->length;
+    for (int i = 0; i < MAX_EMG_SIGNAL_LENGTH; i++)
+        mav += fabs(sig[i]) / (float)MAX_EMG_SIGNAL_LENGTH;
 
     return mav;
 }
 
 
-float variance(emg_signal_t * sig)
+float variance(emg_signal_t sig)
 {
     float mean = 0.f, sq_mean = 0.f;
-    unsigned i;
 
-    for (i = 0; i < sig->length; i++)
+    for (int i = 0; i < MAX_EMG_SIGNAL_LENGTH; i++)
     {
-        emg_sample_t s = sig->samples[i];
+        emg_sample_t s = sig[i];
 
-        mean    +=   s   / (float)sig->length;
-        sq_mean += (s*s) / (float)sig->length;
+        mean    +=   s   / (float)MAX_EMG_SIGNAL_LENGTH;
+        sq_mean += (s*s) / (float)MAX_EMG_SIGNAL_LENGTH;
     }
 
     return sq_mean - mean * mean;
 }
 
 
-float wilson_amplitude(emg_signal_t * sig, float threshold)
+float wilson_amplitude(emg_signal_t sig, float threshold)
 {
-    unsigned count = 0, i;
+    unsigned count = 0;
+    const int N = MAX_EMG_SIGNAL_LENGTH - 1;
 
-    for (i = 0; i < sig->length-1; i++)
-        if ( fabs(sig->samples[i]-sig->samples[i+1]) >= threshold )
+    for (int i = 0; i < N; i++)
+        if ( fabs(sig[i]-sig[i+1]) >= threshold )
             count++;
 
     return count;
 }
 
 
-float waveform_length(emg_signal_t * sig)
+float waveform_length(emg_signal_t sig)
 {
     float wl = 0;
-    unsigned i;
 
-    for (i = 1; i < sig->length; i++)
-        wl += fabs(sig->samples[i]-sig->samples[i-1]);
+    for (int i = 1; i < MAX_EMG_SIGNAL_LENGTH; i++)
+        wl += fabs(sig[i] - sig[i-1]);
 
     return wl;
 }
 
 
-float zero_crossings(emg_signal_t * sig, float threshold)
+float zero_crossings(emg_signal_t sig, float threshold)
 {
-    unsigned count = 0, i;
+    unsigned count = 0;
+    const int N = MAX_EMG_SIGNAL_LENGTH - 1;
 
-    for (i = 0; i < sig->length-1; i++)
-        if (fabs(sig->samples[i] - sig->samples[i+1]) >= threshold)
-            if ((-sig->samples[i] * sig->samples[i+1]) > 0)
+    for (int i = 0; i < N; i++)
+        if (fabs(sig[i] - sig[i+1]) >= threshold)
+            if ((-sig[i] * sig[i+1]) > 0)
                 count++;
 
     return count;

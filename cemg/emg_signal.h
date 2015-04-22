@@ -21,63 +21,18 @@ typedef float emg_sample_t; // NOTE: This is assuming that we're going to use
                             // would be fine..)
 
 
-// ---- Struct type to represent an emg signal from one sensor.
+// ---- Types to represent groups of signals, into channels or streams.
 
-typedef struct emg_signal_t
-{
-    // Preallocated buffer of emg samples.
-    emg_sample_t samples[MAX_EMG_SIGNAL_LENGTH];
+typedef emg_sample_t emg_signal_t[MAX_EMG_SIGNAL_LENGTH];
 
-    // Length of the actual signal.
-    unsigned length;
+typedef emg_sample_t emg_sample_group_t[MAX_EMG_CHANNELS];
 
-} emg_signal_t;
+typedef emg_sample_t
+    emg_signal_group_t[MAX_EMG_CHANNELS][MAX_EMG_SIGNAL_LENGTH];
 
-void init_emg_signal(emg_signal_t * sig);
-
-
-// ---- Struct types to represent a group of emg signals
-//      coming from different sensors.
-
-typedef struct emg_sample_group_t
-{
-    // Preallocated buffer of samples for each channel.
-    emg_sample_t channels[MAX_EMG_CHANNELS];
-
-    // Number of channels in this group.
-    unsigned num_channels;
-
-} emg_sample_group_t;
-
-void init_emg_sample_group(
-    emg_sample_group_t * sample_group,
-    unsigned num_channels
-);
-
-
-typedef struct emg_signal_group_t
-{
-    // Preallocated buffer of signals for each channel.
-    emg_signal_t channels[MAX_EMG_CHANNELS];
-
-    // Number of channels in this group.
-    unsigned num_channels;
-
-    // Length of the smallest signal.
-    unsigned length;
-
-} emg_signal_group_t;
-
-void init_emg_signal_group(
-    emg_signal_group_t * signal_group,
-    unsigned num_channels
-);
-
-void insert_sample_group(
-    emg_signal_group_t * signal_group,
-    emg_sample_group_t * sample_group,
-    unsigned index
-);
+void init_emg_signal(emg_signal_t sig);
+void init_emg_sample_group(emg_sample_group_t sample_group);
+void init_emg_signal_group(emg_signal_group_t signal_group);
 
 
 #endif

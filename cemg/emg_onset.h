@@ -39,9 +39,8 @@ typedef struct onset_info_t {
 void init_onset_info(onset_info_t * onset_info);
 
 bool onset_detected(
-    onset_info_t onset_infos[],
-    unsigned num_onset_infos,
-    emg_sample_group_t * sample_group
+    onset_info_t onset_infos[MAX_EMG_CHANNELS],
+    emg_sample_group_t sample_group
 );
 bool onset_detected_in_channel(
     onset_info_t * onset_info,

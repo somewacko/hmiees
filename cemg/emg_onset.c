@@ -30,16 +30,16 @@ void init_onset_info(onset_info_t * onset_info)
 
 
 bool onset_detected(
-    onset_info_t onset_infos[],
-    unsigned onset_infos_length,
-    emg_sample_group_t * sample_group
+    onset_info_t onset_infos[MAX_EMG_CHANNELS],
+    emg_sample_group_t sample_group
 ){
     bool onset = false;
-    unsigned i;
-    for (i = 0; i < onset_infos_length; i++)
+
+    for (int n = 0; n < MAX_EMG_CHANNELS; n++)
     {
         onset = onset || onset_detected_in_channel(
-            &onset_infos[i], sample_group->channels[i]
+            &onset_infos[n],
+            sample_group[n]
         );
     }
 
