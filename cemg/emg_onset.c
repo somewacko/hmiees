@@ -69,7 +69,9 @@ bool onset_detected_in_channel(
         if (++info->base_var_count == M)
         {
             info->base_variance = info->base_sq_mean
-                - info->base_mean * info->base_mean; 
+                - info->base_mean * info->base_mean;
+
+            printf("BV: %0.10f\n", info->base_variance);
         }
     }
     else if (info->is_even)

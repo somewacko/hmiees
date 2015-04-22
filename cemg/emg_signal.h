@@ -11,7 +11,7 @@
 
 
 #define MAX_EMG_SIGNAL_LENGTH 150
-#define MAX_EMG_CHANNELS      3
+#define MAX_EMG_CHANNELS      2
 
 
 // ---- Base sample type that signals will be read in as.

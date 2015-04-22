@@ -6,7 +6,9 @@
 #include <uart.h>
 #include <adc.h>
 #include <math.h>
+#include <libq.h>
 
+#include "constants.h"
 #include "emg_filter.h"
 #include "emg_signal.h"
 #include "emg_processing.h"
@@ -31,19 +33,19 @@ bool processing_is_ready = false;  // Flag to indicate to main loop that
                                    // enough samples have been read to begin
                                    // processing.
 
-const unsigned NUM_CHANNELS = 3;   // Number of channels being read.
 const unsigned SPERIOD      = 150; // Number of samples read after.
 const double INT10_MAX      = pow(2,  9);
 const double UINT10_MAX     = pow(2, 10);
 
 processing_info_t processing_info;
-
-volatile uint16_t channels[8][3];
-
 volatile uint32_t ticks = 0;
 
+_Q16 qsamples[8 * MAX_EMG_CHANNELS];
 
-int main (void){
+
+int main (void) {
+
+    init_filters();
 
     // Init processing struct
     init_processing_info(&processing_info, SPERIOD);
@@ -91,7 +93,7 @@ int main (void){
         AD1CON2 = 0x2200;
         AD1CON3bits.ADRC = 0;   //clock derived from system tcy = 25.25 ns
         AD1CON3bits.SAMC = 2;   //2 tads = Tsamp
-        AD1CON3bits.ADCS = 48;  // (X+1)*tcy = tad
+        AD1CON3bits.ADCS = 60;  // (X+1)*tcy = tad
                                 // decrease value to increase sampling frequency
         AD1CON4bits.DMABL = 0;  // 1 word buffer per input
 
@@ -134,12 +136,11 @@ int main (void){
         //AD1CON1bits.ASAM = 0; //sampling begins when SAMP bit is set.
         //AD1CON1bits.SAMP = 0; //0 holding, 1 sampling
 
-
-        printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+        printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
         printf("Starting...\n\n");
 
         //turns on ADC
-        AD1CON1bits.FORM = 0; //sets AD output (0=int 1=s-int, 2=frac, 3=sfrac
+        AD1CON1bits.FORM = 3; //sets AD output (0=int 1=s-int, 2=frac, 3=sfrac
         AD1CON1bits.ADON = 1;
         IFS0bits.AD1IF = 0;
         IPC3bits.AD1IP = 7; //sets ADC1 conversion interrupt priority to 7
@@ -149,55 +150,50 @@ int main (void){
 
         // Main loop
 
+        unsigned num_late = 0;
+        _Q16 qgroup[MAX_EMG_CHANNELS];
         emg_sample_group_t sample_group;
-        init_emg_sample_group(&sample_group);
+
+
+        while (ticks < 32000); // Wait a second
+
+        printf("Running\n\n");
         
 	while(1)
         {
-            if (ticks % 4000 < 10)
-            {
-
-                printf("\r%6d %6d %6d | ticks: %8lu | sec: %8lu    ",
-                    /*sample_group.channels[0],
-                    sample_group.channels[1],
-                    sample_group.channels[2],*/
-                    channels[0][0],
-                    channels[0][1],
-                    channels[0][2],
-                    ticks,
-                    ticks/8000
-                );
-            }continue;
+//            if (ticks % 2000 < 10)
+//            {
+//                printf("\r%7.4f %7.4f | ticks: %8lu | sec: %4lu    ",
+//                    sample_group[0],
+//                    sample_group[1],
+//                    ticks,
+//                    ticks/8000
+//                );
+//            }
             
             if (processing_is_ready)
             {
                 processing_is_ready = false;
 
-                for (int i = 0; i < 8; i++)
+                for (int i = 0; i < 8*MAX_EMG_CHANNELS; i += MAX_EMG_CHANNELS)
                 {
-                    sample_group[0] = channels[i][0];
-                    sample_group[1] = channels[i][1];
-                    sample_group[2] = channels[i][2];
-                    //read_in_sample_group(&processing_info, &sample_group);
+                    qgroup[0] = qsamples[i  ];
+                    qgroup[1] = qsamples[i+1];
+                    filter_sample_group(qgroup);
                 }
 
+                sample_group[0] = _itofQ16(qgroup[0]);
+                sample_group[1] = _itofQ16(qgroup[1]);
+
+
                 process_sample(&processing_info, sample_group);
+
+//                if (processing_is_ready)
+//                    printf("\rnum_late: %d    ", ++num_late);
             }
 	}
 }
 
-
-//void _ADC1Interrupt(void)
-//{
-//    unsigned d = ADC1BUF0;
-//    printf("d=%d\n", d);
-//    //printf("END CONVERSION\n");
-//    while(IFS0bits.U1TXIF)
-//    {
-//        IFS0bits.U1TXIF = 0;
-//    }
-//    IFS0bits.AD1IF = 0;
-//}
 
 void _DMA1Interrupt(void)
 {
@@ -205,18 +201,19 @@ void _DMA1Interrupt(void)
 
     if(DMACS1bits.PPST1 == 0)
     {
-        channels[i][0] = BufferA[1];
-        channels[i][1] = BufferA[2];
-        channels[i][2] = BufferA[3];
+        // Ignore BufferA[0]
+        qsamples[i  ] = BufferA[1];
+        qsamples[i+1] = BufferA[2];
+        //samples[i+2] = BufferA[3];
     }
     else
     {
-        channels[i][0] = BufferB[1];
-        channels[i][1] = BufferB[2];
-        channels[i][2] = BufferB[3];
+        // Ignore BufferB[0]
+        qsamples[i  ] = BufferB[1];
+        qsamples[i+1] = BufferB[2];
+        //samples[i+2] = BufferB[3];
     }
 
-//    dmaBuffer ^= 1;
     IFS0bits.DMA1IF = 0;
 
     if (i == 7)
