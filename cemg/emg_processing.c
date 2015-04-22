@@ -74,14 +74,25 @@ void transmit_features(double features[], emg_signal_group_t * signal_group)
 {
     emg_feature_t f;
     unsigned n;
-    // { Actual transmittion yet to be implemented... }
 
+    printf("[%0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f]");
+
+    printf("\n");
+    printf("[");
+    for (n = 0; n < signal_group->num_channels; n++)
+        for (f = 0; f < emg_feature_count; f++)
+            printf("%0.6f ", features[f+n*emg_feature_count]);
+    printf("]");
+    printf("\n");
+
+    /*
     printf("\nExtracted features:\n");
     for (n = 0; n < signal_group->num_channels; n++){
         for (f = 0; f < emg_feature_count; f++)
-            printf("\t%s - %5.2f\n", feature_name(f), features[f+n*emg_feature_count]);
+            printf("\t%s - %5.2f\n", feature_name(f), );
         printf("\n");
     }
+    */
 }
 
 
