@@ -17,6 +17,7 @@
 //#pragma config DEBUG = OFF, MCLRE = OFF, LVP = OFF, FOSC = INTOSCIO_EC
 void __attribute__((__interrupt__,__auto_psv__)) _ADC1Interrupt(void);
 void __attribute__((__interrupt__, __no_auto_psv__)) _DMA1Interrupt(void);
+void initTmr3();
 unsigned int BufferA[4] __attribute__((space(dma)));
 unsigned int BufferB[4] __attribute__((space(dma)));
 unsigned int dmaBuffer = 0;
@@ -58,7 +59,7 @@ int main (void){
 
 /*-----------------INITIALZE UART----------------------------*/
         U1RXR_I = 14;               //uart input on Rp14
-	RPOR7bits.RP15R = U1TX_O;   //usart output on Rp15
+	RPOR7bits.RP15R = U1TX_O;   //uart output on Rp15
 
         //Baud Rate scaller = ((FCY/4)*115200)-1  if BRGH=1(creates baud rate of 115200)
         U1BRG = 85;
@@ -89,9 +90,10 @@ int main (void){
         //integer output, Samples CH0-3 simultaneously,sampling begins auto after last conversion
         AD1CON1 = 0x10FC;
         AD1CON2 = 0x2200;
+        AD1CON1bits.SSRC = 2;   //conversion starts on timer3 interrupt
         AD1CON3bits.ADRC = 0;   //clock derived from system tcy = 25.25 ns
         AD1CON3bits.SAMC = 2;   //2 tads = Tsamp
-        AD1CON3bits.ADCS = 48;  // (X+1)*tcy = tad
+        AD1CON3bits.ADCS = 98;  // (X+1)*tcy = tad
                                 // decrease value to increase sampling frequency
         AD1CON4bits.DMABL = 0;  // 1 word buffer per input
 
@@ -105,7 +107,6 @@ int main (void){
         ADPCFGbits.PCFG5 = 0;
         ADPCFGbits.PCFG4 = 0;
         ADPCFGbits.PCFG3 = 0;
-        TRISBbits.TRISB13 = 0;
 
 
 
@@ -118,22 +119,11 @@ int main (void){
         DMA1REQ = 13;           //select ADC request source
         DMA1STA = __builtin_dmaoffset(BufferA);
         DMA1STB = __builtin_dmaoffset(BufferB);
-        
-
-
-
 
         IFS0bits.DMA1IF = 0; //clear dma interrupt flag
         IEC0bits.DMA1IE = 1; //enable DMA interrupt
 
         DMA1CONbits.CHEN = 1;       //enable DMA
-
-
-        //sets R/W-0 pin to be analog, all others digital
-        //ADPCFG = 0XFFFE;
-        //AD1CON1bits.ASAM = 0; //sampling begins when SAMP bit is set.
-        //AD1CON1bits.SAMP = 0; //0 holding, 1 sampling
-
 
         printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
         printf("Starting...\n\n");
@@ -145,10 +135,10 @@ int main (void){
         IPC3bits.AD1IP = 7; //sets ADC1 conversion interrupt priority to 7
         INTTREGbits.ILR = 6; //sets CPU priority to 6
         IEC0bits.AD1IE = 0; //ADC interrupt is off
+        initTmr3();
 
 
         // Main loop
-
         emg_sample_group_t sample_group;
         init_emg_sample_group(&sample_group);
         
@@ -223,5 +213,14 @@ void _DMA1Interrupt(void)
         processing_is_ready = true;
 
     ticks++;
+}
+
+void initTmr3()
+{
+	TMR3 = 0x0000;
+	PR3  = 4999;			// Trigger ADC1 every 125usec
+	IFS0bits.T3IF = 0;		// Clear Timer 3 interrupt
+	IEC0bits.T3IE = 0;		// Disable Timer 3 interrupt
+	T3CONbits.TON = 1;		//Start Timer 3
 }
 
