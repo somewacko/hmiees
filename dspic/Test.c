@@ -42,25 +42,18 @@ volatile uint16_t channels[8][3];
 
 volatile uint32_t ticks = 0;
 
-static unsigned test = 0;
-static unsigned seconds = 0;
-static unsigned test2 = 0;
-
-
 
 int main (void){
 
-    // Init processing structs
-    init_processing_info(&processing_info, NUM_CHANNELS, SPERIOD);
-    //init_emg_sample_group(&sample_group, NUM_CHANNELS);
+    // Init processing struct
+    init_processing_info(&processing_info, SPERIOD);
+    
 
 /*-------------------INITIALIZE OSCILLATOR------------------------*/
 	CLKDIVbits.PLLPRE = 0;      //clock prescaller 7.37Mhz/2
 	PLLFBD = 41;                //multiplyer 41+2=43 (7.37Mhz/2)*43
 	CLKDIVbits.PLLPOST = 0;     //postscaller /2   (7.37Mhz/2)*43/2 = 79.23 MHz
 		while(!OSCCONbits.LOCK);    //wait for oscillator to set
-
-
 
 
 /*-----------------INITIALZE UART----------------------------*/
@@ -98,7 +91,8 @@ int main (void){
         AD1CON2 = 0x2200;
         AD1CON3bits.ADRC = 0;   //clock derived from system tcy = 25.25 ns
         AD1CON3bits.SAMC = 2;   //2 tads = Tsamp
-        AD1CON3bits.ADCS = 80;  // (98+1)*tcy = tad = 2.5us   use 80?
+        AD1CON3bits.ADCS = 48;  // (X+1)*tcy = tad
+                                // decrease value to increase sampling frequency
         AD1CON4bits.DMABL = 0;  // 1 word buffer per input
 
         //sets negative pins for CH1-3 to Vref-, positive pins are AN3,4,5;
@@ -124,13 +118,15 @@ int main (void){
         DMA1REQ = 13;           //select ADC request source
         DMA1STA = __builtin_dmaoffset(BufferA);
         DMA1STB = __builtin_dmaoffset(BufferB);
+        
+
+
+
 
         IFS0bits.DMA1IF = 0; //clear dma interrupt flag
         IEC0bits.DMA1IE = 1; //enable DMA interrupt
 
         DMA1CONbits.CHEN = 1;       //enable DMA
-
-
 
 
         //sets R/W-0 pin to be analog, all others digital
@@ -154,17 +150,13 @@ int main (void){
         // Main loop
 
         emg_sample_group_t sample_group;
-        init_emg_sample_group(&sample_group, NUM_CHANNELS);
+        init_emg_sample_group(&sample_group);
         
 	while(1)
         {
             if (ticks % 4000 < 10)
             {
-                if(PORTBbits.RB13 == 0)
-                {
-                    PORTBbits.RB13 = 1;
-                }
-                else PORTBbits.RB13 = 0;
+
                 printf("\r%6d %6d %6d | ticks: %8lu | sec: %8lu    ",
                     /*sample_group.channels[0],
                     sample_group.channels[1],
@@ -175,7 +167,7 @@ int main (void){
                     ticks,
                     ticks/8000
                 );
-            }
+            }continue;
             
             if (processing_is_ready)
             {
@@ -183,57 +175,32 @@ int main (void){
 
                 for (int i = 0; i < 8; i++)
                 {
-                    sample_group.channels[0] = channels[i][0];
-                    sample_group.channels[1] = channels[i][1];
-                    sample_group.channels[2] = channels[i][2];
+                    sample_group[0] = channels[i][0];
+                    sample_group[1] = channels[i][1];
+                    sample_group[2] = channels[i][2];
                     //read_in_sample_group(&processing_info, &sample_group);
                 }
 
-                process_sample(&processing_info);
+                process_sample(&processing_info, sample_group);
             }
 	}
 }
 
 
-void _ADC1Interrupt(void)
-{
-    unsigned d = ADC1BUF0;
-    printf("d=%d\n", d);
-    //printf("END CONVERSION\n");
-    while(IFS0bits.U1TXIF)
-    {
-        IFS0bits.U1TXIF = 0;
-    }
-    IFS0bits.AD1IF = 0;
-}
+//void _ADC1Interrupt(void)
+//{
+//    unsigned d = ADC1BUF0;
+//    printf("d=%d\n", d);
+//    //printf("END CONVERSION\n");
+//    while(IFS0bits.U1TXIF)
+//    {
+//        IFS0bits.U1TXIF = 0;
+//    }
+//    IFS0bits.AD1IF = 0;
+//}
 
 void _DMA1Interrupt(void)
 {
-    static uint16_t count;
-//    if(test!=DMACS1bits.PPST1)
-//    {
-//        count++;
-//        test = DMACS1bits.PPST;
-//        if(count>8000)
-//        {
-//         test2++;
-//         printf("\r seconds = %d",test2);
-//         count = 0;
-//        }
-//    }
-
-
-    if (count % 4 == 0)
-        ticks++;
-    count++;
-
-
-
-
-    
-
-        
-
     uint8_t i = ticks % 8;
 
     if(DMACS1bits.PPST1 == 0)
@@ -249,10 +216,12 @@ void _DMA1Interrupt(void)
         channels[i][2] = BufferB[3];
     }
 
-    dmaBuffer ^= 1;
+//    dmaBuffer ^= 1;
     IFS0bits.DMA1IF = 0;
 
     if (i == 7)
         processing_is_ready = true;
+
+    ticks++;
 }
 
