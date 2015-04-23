@@ -19,6 +19,7 @@
 //#pragma config DEBUG = OFF, MCLRE = OFF, LVP = OFF, FOSC = INTOSCIO_EC
 void __attribute__((__interrupt__,__auto_psv__)) _ADC1Interrupt(void);
 void __attribute__((__interrupt__, __no_auto_psv__)) _DMA1Interrupt(void);
+void initTmr3();
 unsigned int BufferA[4] __attribute__((space(dma)));
 unsigned int BufferB[4] __attribute__((space(dma)));
 unsigned int dmaBuffer = 0;
@@ -43,6 +44,9 @@ volatile uint32_t ticks = 0;
 _Q16 qsamples[8 * MAX_EMG_CHANNELS];
 
 
+int test[4];
+
+
 int main (void) {
 
     init_filters();
@@ -60,7 +64,7 @@ int main (void) {
 
 /*-----------------INITIALZE UART----------------------------*/
         U1RXR_I = 14;               //uart input on Rp14
-	RPOR7bits.RP15R = U1TX_O;   //usart output on Rp15
+	RPOR7bits.RP15R = U1TX_O;   //uart output on Rp15
 
         //Baud Rate scaller = ((FCY/4)*115200)-1  if BRGH=1(creates baud rate of 115200)
         U1BRG = 85;
@@ -90,10 +94,11 @@ int main (void) {
         //continue module in idle, DMA buffers written in order of conversion, 10bit conversion
         //integer output, Samples CH0-3 simultaneously,sampling begins auto after last conversion
         AD1CON1 = 0x10FC;
-        AD1CON2 = 0x2200;
+        AD1CON2 = 0x0200;
+        AD1CON1bits.SSRC = 2;   //conversion starts on timer3 interrupt
         AD1CON3bits.ADRC = 0;   //clock derived from system tcy = 25.25 ns
         AD1CON3bits.SAMC = 2;   //2 tads = Tsamp
-        AD1CON3bits.ADCS = 60;  // (X+1)*tcy = tad
+        AD1CON3bits.ADCS = 98;  // (X+1)*tcy = tad
                                 // decrease value to increase sampling frequency
         AD1CON4bits.DMABL = 0;  // 1 word buffer per input
 
@@ -107,7 +112,6 @@ int main (void) {
         ADPCFGbits.PCFG5 = 0;
         ADPCFGbits.PCFG4 = 0;
         ADPCFGbits.PCFG3 = 0;
-        TRISBbits.TRISB13 = 0;
 
 
 
@@ -118,12 +122,9 @@ int main (void) {
         DMA1PAD = (volatile unsigned int)&ADC1BUF0; // Point DMA to ADC1BUF0
         DMA1CNT = 3;            // 4DMA request
         DMA1REQ = 13;           //select ADC request source
-        DMA1STA = __builtin_dmaoffset(BufferA);
-        DMA1STB = __builtin_dmaoffset(BufferB);
-        
-
-
-
+        DMA1STA = __builtin_dmaoffset(&BufferA);
+        //printf("%d/n",DMA1STA);
+        DMA1STB = __builtin_dmaoffset(&BufferB);
 
         IFS0bits.DMA1IF = 0; //clear dma interrupt flag
         IEC0bits.DMA1IE = 1; //enable DMA interrupt
@@ -137,15 +138,18 @@ int main (void) {
         //AD1CON1bits.SAMP = 0; //0 holding, 1 sampling
 
         printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+
         printf("Starting...\n\n");
 
         //turns on ADC
-        AD1CON1bits.FORM = 3; //sets AD output (0=int 1=s-int, 2=frac, 3=sfrac
+        AD1CON1bits.FORM = 1; //sets AD output (0=int 1=s-int, 2=frac, 3=sfrac
         AD1CON1bits.ADON = 1;
         IFS0bits.AD1IF = 0;
         IPC3bits.AD1IP = 7; //sets ADC1 conversion interrupt priority to 7
         INTTREGbits.ILR = 6; //sets CPU priority to 6
         IEC0bits.AD1IE = 0; //ADC interrupt is off
+
+        initTmr3();
 
 
         // Main loop
@@ -161,15 +165,33 @@ int main (void) {
         
 	while(1)
         {
-//            if (ticks % 2000 < 10)
-//            {
+            if (ticks % 2000 < 10)
+            {
+//                printf("\r%4d %4d %4d %4d | ticks: %8lu | sec: %4lu    ",
+////                        _itofQ16(test[0]),
+////                        _itofQ16(test[1]),
+////                        _itofQ16(test[2]),
+////                        _itofQ16(test[3]),
+//                        test[0],
+//                        test[1],
+//                        test[2],
+//                        test[3],
+//                        ticks,
+//                        ticks/8000
+//                );
+
+               printf("\r%4d %4d %4d %4d    ", BufferA[0], BufferA[1], BufferA[2], BufferA[3]);
+
 //                printf("\r%7.4f %7.4f | ticks: %8lu | sec: %4lu    ",
-//                    sample_group[0],
-//                    sample_group[1],
+//                    _itofQ16(BufferA[0]),
+//                    _itofQ16(BufferA[1]),
 //                    ticks,
 //                    ticks/8000
 //                );
-//            }
+            }
+
+            continue;
+
             
             if (processing_is_ready)
             {
@@ -199,8 +221,15 @@ void _DMA1Interrupt(void)
 {
     uint8_t i = ticks % 8;
 
+    
+
     if(DMACS1bits.PPST1 == 0)
     {
+        test[0] = BufferA[0];
+        test[1] = BufferA[1];
+        test[2] = BufferA[2];
+        test[3] = BufferA[3];
+
         // Ignore BufferA[0]
         qsamples[i  ] = BufferA[1];
         qsamples[i+1] = BufferA[2];
@@ -208,6 +237,11 @@ void _DMA1Interrupt(void)
     }
     else
     {
+        test[0] = BufferB[0];
+        test[1] = BufferB[1];
+        test[2] = BufferB[2];
+        test[3] = BufferB[3];
+
         // Ignore BufferB[0]
         qsamples[i  ] = BufferB[1];
         qsamples[i+1] = BufferB[2];
@@ -220,5 +254,14 @@ void _DMA1Interrupt(void)
         processing_is_ready = true;
 
     ticks++;
+}
+
+void initTmr3()
+{
+	TMR3 = 0x0000;
+	PR3  = 4999;			// Trigger ADC1 every 125usec
+	IFS0bits.T3IF = 0;		// Clear Timer 3 interrupt
+	IEC0bits.T3IE = 0;		// Disable Timer 3 interrupt
+	T3CONbits.TON = 1;		//Start Timer 3
 }
 
