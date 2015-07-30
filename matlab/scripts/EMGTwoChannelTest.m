@@ -63,14 +63,14 @@ fprintf('\n');
 % Test classifier
 
 successes = [];
-periods   = 25:25:400;
+periods   = 100:50:200;
 
 for sampling_period = periods
 
     fprintf('Testing with Sampling Period: %d ms\n\n', sampling_period);
     
     [avg_successes, distances] = TestClassifierTwoChannel( ...
-        signals, sampling_period, [], gesture_names, 1);
+        signals, sampling_period, [], gesture_names, 0);
     
     %fprintf('\n');
     %for i = 1:length(avg_successes)

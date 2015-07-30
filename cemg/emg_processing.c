@@ -40,19 +40,24 @@ void init_processing_info(
 
 // ---- Main processing methods
 
-void extract_all_features(double features[], emg_signal_group_t signal_group)
+void extract_all_features(double features[], unsigned count, emg_sample_group_t sample_group)
 {
     // Extract features using 0.005 as the default parameter for now..
 
     const int N = MAX_EMG_CHANNELS * emg_feature_count;
+    unsigned channel = 0;
 
     for (int n = 0; n < N; n++)
     {
-        features[n] = extract_feature(
-            signal_group[n % MAX_EMG_CHANNELS],
+        extract_feature(
+            &features[n],
+            count,
+            sample_group[channel],
             n % emg_feature_count,
             0.005f
         );
+        if (n == 5)
+            channel++;
     }
 }
 

@@ -1,10 +1,10 @@
-# EMG Classifier
+# Human-Machine Interfacing via Epidermal Electronic Systems
 
-Matlab classes to process and classify EMG signals, with the ultimate goal of leading to a real-time classifier that interfaces with a wireless external sensor device.
+A VCU Engineering Capstone Design project to measure and classify EMG signals to control an external system in realtime. Awarded *Excellence in Design* at the 2015 Capstone Expo for having one of the most exemplary projects in the ECE department.
 
-Part of a 2015 VCU Engineering Capstone Design project, *Human-Machine Interfacing via Epidermal Electronic Systems*, which will be displayed at the Science Museum of Virginia on April 24, 2015.
+Our poster describing the project in more detail can be found [here](https://drive.google.com/file/d/0B_jWp8d11aB5cVhoM2UyTEJtTkE/view?usp=sharing).
 
-#### Using the classifier:
+#### Using the Matlab classifier:
 
 ```matlab
 
@@ -31,13 +31,11 @@ Part of a 2015 VCU Engineering Capstone Design project, *Human-Machine Interfaci
 
 #### Directories:
 
-| Name | Description |
-| ---- | ----------- |
-| *cemg*       | C code for the classifier device
-| *classifier* | The classifier and other related classes.
-| *data*       | Pre-recorded data to test and experiment with. Includes functions to access
-| *func*       | All Matlab functions used with the program and scripts.
-| *gui*        | All code and figures for the GUI program.
-| *scripts*    | Scripts used to develop and test the classifier.
+| Name     | Description |
+| -------- | ----------- |
+| *cemg*   | C code for the classifier devices.
+| *ctest*  | Tests for the C classifier.
+| *data*   | Pre-recorded data to test and experiment with. Includes functions to access
+| *matlab* | Scripts used to develop and test the classifier.
 
 

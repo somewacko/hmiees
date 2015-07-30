@@ -6,7 +6,7 @@
 clf;
 
 file_sampling_rate = 8000;
-sampling_period    = 50;
+sampling_period    = 150;
 
 files = {
     %'data/stefan/whole/2xClockwise_two_Sharpley1.raw',   ...

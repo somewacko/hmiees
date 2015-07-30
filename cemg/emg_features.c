@@ -12,29 +12,29 @@
 #include <stdlib.h>
 
 
-float extract_feature(emg_signal_t sig, emg_feature_t feat, float param)
+float extract_feature(float * value, unsigned count, emg_sample_t sig, emg_feature_t feat, float param)
 {
     switch (feat)
     {
         case emg_feat_MAV:
-            return mean_absolute_value(sig);
+            mean_absolute_value(value, count, sig);
         case emg_feat_VAR:
-            return variance(sig);
+            variance(value, count, sig);
         case emg_feat_WAMP:
-            return wilson_amplitude(sig, param);
+            wilson_amplitude(value, count, sig, param);
         case emg_feat_WL:
-            return waveform_length(sig);
+            waveform_length(value, count, sig);
         case emg_feat_ZC:
-            return zero_crossings(sig, param);
-        default:
-            return 0;
+            zero_crossings(value, count, sig, param);
     }
 }
 
 
-float mean_absolute_value(emg_signal_t sig)
+void mean_absolute_value(float * val, unsigned count, emg_sample_t sig)
 {
     float mav = 0.f;
+
+    *feat += fabs(sig[i]) / (float)MAX_EMG_SIGNAL_LENGTH;
     
     for (int i = 0; i < MAX_EMG_SIGNAL_LENGTH; i++)
         mav += fabs(sig[i]) / (float)MAX_EMG_SIGNAL_LENGTH;
@@ -43,7 +43,7 @@ float mean_absolute_value(emg_signal_t sig)
 }
 
 
-float variance(emg_signal_t sig)
+void variance(float * val, unsigned count, emg_sample_t sig)
 {
     float mean = 0.f, sq_mean = 0.f;
 
@@ -59,7 +59,7 @@ float variance(emg_signal_t sig)
 }
 
 
-float wilson_amplitude(emg_signal_t sig, float threshold)
+void wilson_amplitude(float * val, unsigned count, emg_sample_t sig, float threshold)
 {
     unsigned count = 0;
     const int N = MAX_EMG_SIGNAL_LENGTH - 1;
@@ -72,7 +72,7 @@ float wilson_amplitude(emg_signal_t sig, float threshold)
 }
 
 
-float waveform_length(emg_signal_t sig)
+void waveform_length(float * val, unsigned count, emg_sample_t sig)
 {
     float wl = 0;
 
@@ -83,7 +83,7 @@ float waveform_length(emg_signal_t sig)
 }
 
 
-float zero_crossings(emg_signal_t sig, float threshold)
+void zero_crossings(float * val, unsigned count, emg_sample_t sig, float threshold)
 {
     unsigned count = 0;
     const int N = MAX_EMG_SIGNAL_LENGTH - 1;
